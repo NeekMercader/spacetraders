@@ -1,9 +1,9 @@
 class Goods:
 	def __init__(self, cat, name, capacity_used, baseprice):
-		self.cat = cat 							# category (deprecated: self.sku = sku)
+		self.cat = cat				# category (deprecated: self.sku = sku)
 		self.name = name
-		self.capacity_used = capacity_used 		# capacity amount used by this unit
-		self.baseprice = baseprice						# suggested retail (standard)
+		self.capacity_used = capacity_used	# capacity amount used by this unit
+		self.baseprice = baseprice	# suggested retail (standard)
 		
 	def __repr__(self):
 		return str(dir(self))

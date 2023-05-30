@@ -5,6 +5,7 @@
 import languages.en as lang
 import views.en as views
 import data.data as data
+import utilities.utilities as util
 
 
 class Species:
@@ -48,39 +49,35 @@ class Ship:
 	def __repr__(self):
 		return self.msg("repr_ship").format(name=self.name, ship_type=self.ship_type, ship_class = self.ship_class, passenger_capacity = self.utilized_passenger_capacity, cargo_capacity = self.utilized_cargo_capacity, weapons_capacity = self.utilized_weapon_capacity, cargo = self.cargo, weapons = self.weapons)
 
-	def load_cargo(self, goods):		# goods = dict { item : qty } (e.g. { "food" : 200 })
+	def load_cargo(self, goods):		# goods = dict (e.g. { "food" : 200, "arms" : 10 })
 		goods_capacity = self.compute_capacity(goods)
 		if self.cargo_capacity >= self.utilized_cargo_capacity + goods_capacity:
-			print("self.cargo_capacity=", self.cargo_capacity, " // self.utilized_cargo_capacity + goods capacity =", self.utilized_cargo_capacity + goods_capacity, " // goods_capacity =", goods_capacity, ".\n\n")
 			self.utilized_cargo_capacity += goods_capacity
 			for item in goods.keys():
 				self.cargo[item] = self.cargo.get(item, 0) + goods[item] # item qty, not capacity 
 
 			print(self.msg("cargo_loaded").format(one=self.cargo_capacity,two=self.utilized_cargo_capacity,three=self.cargo_capacity-self.utilized_cargo_capacity,four=self.cargo))
-
 		else:
-
 			print(lang.content["cargo_not_loaded"])
+		
+		# print(self.show_cargo_stats(goods))
+		print(self.show_cargo_stats(self.cargo))
 			
-
-		
-
-		
-	def remove_cargo(self, goods):			# (e.g. { "food" : 200, "arms" : 10 })
+	def remove_cargo(self, goods):			# goods = dict (e.g. { "food" : 200, "arms" : 10 })
 		for item in goods.keys():			# check if quantities declared actually exist
 			# if (self.cargo[item] < goods[item]):
 			if (self.cargo.get(item,0) < goods[item]):
-				print(lang.content["cargo_not_moved"], ": [\"", item, "\"].")	# erroneous quantity, so abort
+				print(lang.content["cargo_not_removed"], ": [\"", item, "\"].")	# erroneous qty; abort
 				return
 		for item in goods.keys():			# now that we're safe, do the actual removals
 			self.cargo[item] -= goods[item]
 			if self.cargo[item] == 0:
-				# self.cargo.pop(item)		# if 0, remove entire item
-				del self.cargo[item]
+				del self.cargo[item]		# if 0, remove entire item
 		goods_capacity = self.compute_capacity(goods)		# check total capacity used
 		self.utilized_cargo_capacity -= goods_capacity	# update counters
 
-		print(self.msg("cargo_moved").format(one=self.cargo_capacity,two=self.utilized_cargo_capacity,three=self.cargo_capacity-self.utilized_cargo_capacity,four=self.cargo))	# success
+		print(self.msg("cargo_removed"))	# success
+		print(self.show_cargo_stats(self.cargo))
 
 		
 	def compute_capacity(self, itemlist):			# itemlist = dict of goods
@@ -98,17 +95,22 @@ class Ship:
 
 	def msg(self, msg_id):
 		return lang.content[msg_id]
+	
+	def show_cargo_stats(self, cargo):
+		total_capacity = 0
+		rows = []
+		for item in cargo.keys():
+			subtotal_capacity = data.goods_list[item].capacity_used * cargo[item]
+			total_capacity += subtotal_capacity
+
+			rows.append([data.goods_list[item].cat, cargo[item], data.goods_list[item].capacity_used, subtotal_capacity ])		# make_table() will do the string-ifying
+
+		print(util.make_table(rows, lang.content["labelwidths"]))
+		print(lang.content["inv_capacity_used"] + str(total_capacity))
+		
 
 '''
-class Goods:
-	def __init__(self, cat, name, capacity_used, baseprice):
-		self.cat = cat 							# category (deprecated: self.sku = sku)
-		self.name = name
-		self.capacity_used = capacity_used 		# capacity amount used by this unit
-		self.baseprice = baseprice						# suggested retail (standard)
-		
-	def __repr__(self):
-		return str(dir(self))
+class Goods: ...
 '''
 
 class ShipWeapon:
@@ -168,10 +170,9 @@ sample_ship = Ship("USS Enterprise", "explorer", "enterprise")
 
 sample_ship.load_cargo( {"minerals": 2, "arms": 5, "gadgets": 2} )
 sample_ship.load_cargo( {"food_supplies": 10, "gadgets": 9 } )
-# sample_ship.load_cargo( {"arms": 10, "raw_materials": 5, "minerals": 5} )
-print("Here's the results from the game [01] : \n", sample_ship)
+sample_ship.load_cargo( {"arms": 10, "raw_materials": 5, "minerals": 5} )
 sample_ship.remove_cargo( {"raw_materials": 3, "arms": 2} )
-sample_ship.remove_cargo( {"minerals": 5, "arms": 5, "gadgets": 6} )
+# sample_ship.remove_cargo( {"minerals": 5, "arms": 5, "gadgets": 6} )
 # sample_ship.load_cargo( {"raw_materials": 5, "arms": 5} )
 
 print("Here's the results from the game: \n", sample_ship)
