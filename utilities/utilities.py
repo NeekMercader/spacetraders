@@ -1,28 +1,22 @@
 #
-# textlist = list of lists of content data; header = labels
+# maketable : create an ASCII-delimited table
+#   textlist = list of lists of content data (e.g. [["Arms",2,2,6],]) 
+#   header = list of table header labels (e.g. ["Inventory", "Qty",])
 #
 def make_table(textlist, header):
-    longwidths = [len(str(max(idx))) for idx in zip(*textlist)]
+    max_widths = [max(len(str(cell)) for cell in column) for column in zip(header, *textlist)]
     strfull = ""
-    delimiter = " | "  
-
-    # table header labels
-    labelwidths = header
-    titlewidths = [len(labelwidths[w]) if len(labelwidths[w]) >= longwidths[w] else longwidths[w] for w in range(len(labelwidths))]
-    
+    delimiter = " | "
+    border = " +-" + "-+-".join([("-"*w) for w in max_widths]) + "-+" + "\n"
 
     # table data rows
     for rows in textlist:
-        row = delimiter.join([str(cell).ljust(width) for cell, width in zip(rows, titlewidths)])
+        # row = delimiter.join([str(cell).ljust(width) for cell, width in zip(rows, max_widths)])
+        row = delimiter.join([str(cell).ljust(width) if isinstance(cell, str) else str(cell).rjust(width) for cell, width in zip(rows, max_widths)])
         strfull += delimiter + row + delimiter + "\n"
     
-    # connect table body to header and footer
-    # border =  (" " + ((len(thead)-3)*"-")) + "\n"
-    thead = delimiter + delimiter.join([label.center(wid) for label, wid in zip(labelwidths, titlewidths)]) + delimiter + "\n"    
-    border = " +-" + "-+-".join([("-"*w) for w in titlewidths]) + "-+" + "\n"
+    # connect table body to header and footer strings
+    thead = delimiter + delimiter.join([label.center(wid) for label, wid in zip(header, max_widths)]) + delimiter + "\n"
     strfull = "\n" + border + thead + border + strfull + border
 
     return strfull
-
-
-    

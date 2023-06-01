@@ -9,11 +9,10 @@ content = {
 
 	# Cargo
 
-	"cargo_loaded": "\n----------\nCargo has been loaded. Stats:\nTotal ship capacity: {one}\nCapacity used: {two} // Remaining capacity: {three}\nCargo inventory: {four}\n----------\n",
+	"cargo_loaded": "Cargo has been loaded.\nCapacity used: {two} of {one} (Remaining: {three})",
 	"cargo_not_loaded": "Cargo was not loaded. Item mismatch or quantity of goods exceed storage capacity.",
-	"cargo_removed": "\n----------\nCargo has been removed. Stats:\nTotal ship capacity: {one}\nCapacity used: {two} // Remaining capacity: {three}\nCargo inventory: {four}\n----------\n",
-	"cargo_not_removed" : "Cargo not removed! Capacity entered is more than inventory.\n",
-    "inv_capacity_used": " Total capacity used: ",
+	"cargo_removed": "Cargo has been removed.\nCapacity used: {two} of {one} (Remaining: {three})",
+	"cargo_not_removed" : "Cargo not removed! Capacity entered is more than inventory.",
     
 
 	# __repr__
@@ -21,4 +20,5 @@ content = {
 
 	# utilities
 	"labelwidths": ["Inventory", "Qty", "Capacity", "Total"],
+
 }

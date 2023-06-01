@@ -56,7 +56,7 @@ class Ship:
 			for item in goods.keys():
 				self.cargo[item] = self.cargo.get(item, 0) + goods[item] # item qty, not capacity 
 
-			print(self.msg("cargo_loaded").format(one=self.cargo_capacity,two=self.utilized_cargo_capacity,three=self.cargo_capacity-self.utilized_cargo_capacity,four=self.cargo))
+			print(self.msg("cargo_loaded").format(one=self.cargo_capacity,two=self.utilized_cargo_capacity,three=self.cargo_capacity-self.utilized_cargo_capacity))
 		else:
 			print(lang.content["cargo_not_loaded"])
 		
@@ -76,7 +76,7 @@ class Ship:
 		goods_capacity = self.compute_capacity(goods)		# check total capacity used
 		self.utilized_cargo_capacity -= goods_capacity	# update counters
 
-		print(self.msg("cargo_removed"))	# success
+		print(self.msg("cargo_removed").format(one=self.cargo_capacity,two=self.utilized_cargo_capacity,three=self.cargo_capacity-self.utilized_cargo_capacity))
 		print(self.show_cargo_stats(self.cargo))
 
 		
@@ -103,10 +103,9 @@ class Ship:
 			subtotal_capacity = data.goods_list[item].capacity_used * cargo[item]
 			total_capacity += subtotal_capacity
 
-			rows.append([data.goods_list[item].cat, cargo[item], data.goods_list[item].capacity_used, subtotal_capacity ])		# make_table() will do the string-ifying
+			rows.append([data.goods_list[item].cat, cargo[item], data.goods_list[item].capacity_used, subtotal_capacity ])	# make_table() will string-ify; cargo[item] = qty
 
-		print(util.make_table(rows, lang.content["labelwidths"]))
-		print(lang.content["inv_capacity_used"] + str(total_capacity))
+		return(util.make_table(rows, lang.content["labelwidths"]))
 		
 
 '''
@@ -164,15 +163,15 @@ def ui_screens(screen="start"):
 
 #################### (main)
 
-ui_screens()					# start
+# ui_screens()					# start
 
 sample_ship = Ship("USS Enterprise", "explorer", "enterprise")
 
-sample_ship.load_cargo( {"minerals": 2, "arms": 5, "gadgets": 2} )
+sample_ship.load_cargo( {"arms": 2, "gadgets": 5, "minerals": 2} )
 sample_ship.load_cargo( {"food_supplies": 10, "gadgets": 9 } )
 sample_ship.load_cargo( {"arms": 10, "raw_materials": 5, "minerals": 5} )
 sample_ship.remove_cargo( {"raw_materials": 3, "arms": 2} )
 # sample_ship.remove_cargo( {"minerals": 5, "arms": 5, "gadgets": 6} )
 # sample_ship.load_cargo( {"raw_materials": 5, "arms": 5} )
 
-print("Here's the results from the game: \n", sample_ship)
+# print("Here's the results from the game: \n", sample_ship)
