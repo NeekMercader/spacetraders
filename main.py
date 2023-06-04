@@ -102,6 +102,7 @@ class Ship:
 			capacity += (data.goods_list[item].capacity_used if itemtype == "goods" else data.weapons_list[item].capacity_used ) * itemlist[item]
 		return capacity
 
+
 	def attach_weapon(self, shipweapon):	# shipweapons = dict (e.g. { "Pulse Cannon" : 2, "Railgun" : 1 })
 		weapon_capacity = self.compute_capacity(shipweapon, "weapons")
 		if self.weapon_capacity >= self.utilized_weapon_capacity + weapon_capacity:
@@ -144,8 +145,8 @@ class Ship:
 			subtotal_capacity = data.weapons_list[item].capacity_used * weapon[item]
 			total_capacity += subtotal_capacity
 
-			# rows.append([data.weapons_list[item][], weapon[item], data.weapons_list[item].capacity_used, subtotal_capacity ])	# format_table() will string-ify; cargo[item] = qty
-			rows.append([item, weapon[item], data.weapons_list[item].capacity_used, subtotal_capacity ])	# format_table() will string-ify; cargo[item] = qty
+			# rows.append([item, weapon[item], data.weapons_list[item].capacity_used, subtotal_capacity ])	# format_table() will string-ify; weapon[item] = qty
+			rows.append([item, weapon[item], data.weapons_list[item].capacity_used, subtotal_capacity, data.weapons_list[item].damage_per_minute, data.weapons_list[item].hitpoints ])	# format_table() will string-ify; weapon[item] = qty
 		return(util.format_table(rows, lang.content["thead_labels_weapon"]))
 	
 

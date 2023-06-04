@@ -27,5 +27,5 @@ content = {
 
 	# utilities
 	"thead_labels_cargo": ["Inventory", "Qty", "Capacity", "Total"],
-	"thead_labels_weapon": ["Inventory", "Qty", "Capacity", "Total"],
+	"thead_labels_weapon": ["Arsenal", "Qty", "Capacity", "Total", "Damage", "Hitpoints"],
 }
