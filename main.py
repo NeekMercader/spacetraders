@@ -25,16 +25,32 @@ class Creature:							# lifeform (human, alien, droid)
 
 
 class Ship:
-  
-	def __init__(self, name, ship_type, ship_class, cargo=500, weapon=100, passenger=1):
+	@staticmethod
+	def init_ship(shipname="Bellerophon", shiptype="light freighter", owner = 1, fleet = 1):
+		# shipdata = [str(x) if isinstance(x, int) else "\"" + x + "\"" for x in data.ship_data[shiptype][:-1]]
+		shipdata = [x for x in data.ship_data[shiptype][:-1]]
+		shipdata.insert(0, shipname)
+		shipdata.append(owner)
+		shipdata.append(fleet)
+		return shipdata
+	
+	@staticmethod
+	def msg(msg_id):
+		return lang.content[msg_id]
+
+	# def __init__(self, name, ship_type, ship_class, cargo=500, weapon=100, passenger=1, owner=1, fleet=1):
+	def __init__(self, *argslist):
+		name, ship_type, ship_class, cargo, weapon, passenger, owner, fleet = argslist
 		self.name = name
 		self.ship_type = ship_type		# cargo, fighter, hybrid, cruiser, capital (ship)
 		self.ship_class	= ship_class	# enterprise, starliner, starfighter, x-wing
 		self.cargo_capacity = cargo
 		self.weapon_capacity = weapon
 		self.passenger_capacity = passenger
+		self.owner = owner				# player ID (and company name) (default: #1)
+		self.fleet = fleet				# fleet ID# (not qty) (default: #1)
 
-		self.shields = 100				# shield strength (and health)
+		self.shields = 100				# shield strength (and health) (in %)
 		self.health = 100				# health (<10 = can't warp; 0 = total damage (scrap) )
 		self.ship_mods = object()		# warp boosters, shield boost, custom phasers, expanded cargo holds
 
@@ -45,9 +61,9 @@ class Ship:
 		self.passengers = 1
 		self.cargo = {}
 		self.weapons = {}
-
+	
 	def __repr__(self):
-		return self.msg("repr_ship").format(name=self.name, ship_type=self.ship_type, ship_class = self.ship_class, passenger_capacity = self.utilized_passenger_capacity, cargo_capacity = self.utilized_cargo_capacity, weapons_capacity = self.utilized_weapon_capacity, cargo = self.cargo, weapons = self.weapons)
+		return Ship.msg("repr_ship").format(name=self.name, ship_type=self.ship_type, ship_class = self.ship_class, passenger_capacity = self.passenger_capacity, cargo_capacity = self.utilized_cargo_capacity, weapons_capacity = self.utilized_weapon_capacity, cargo = self.cargo, weapons = self.weapons)
 
 	def load_cargo(self, goods):		# goods = dict (e.g. { "food" : 200, "arms" : 10 })
 		goods_capacity = self.compute_capacity(goods)
@@ -56,10 +72,9 @@ class Ship:
 			for item in goods.keys():
 				self.cargo[item] = self.cargo.get(item, 0) + goods[item] # item qty, not capacity 
 
-			print(self.msg("cargo_loaded").format(one=self.cargo_capacity,two=self.utilized_cargo_capacity,three=self.cargo_capacity-self.utilized_cargo_capacity))
+			print(Ship.msg("cargo_loaded").format(one=self.cargo_capacity,two=self.utilized_cargo_capacity,three=self.cargo_capacity-self.utilized_cargo_capacity,four=goods,five=sum(goods.values()),six=goods_capacity))
 		else:
 			print(lang.content["cargo_not_loaded"])
-		
 		# print(self.show_cargo_stats(goods))
 		print(self.show_cargo_stats(self.cargo))
 			
@@ -76,25 +91,41 @@ class Ship:
 		goods_capacity = self.compute_capacity(goods)		# check total capacity used
 		self.utilized_cargo_capacity -= goods_capacity	# update counters
 
-		print(self.msg("cargo_removed").format(one=self.cargo_capacity,two=self.utilized_cargo_capacity,three=self.cargo_capacity-self.utilized_cargo_capacity))
+		print(Ship.msg("cargo_removed").format(one=self.cargo_capacity,two=self.utilized_cargo_capacity,three=self.cargo_capacity-self.utilized_cargo_capacity,four=goods,five=sum(goods.values()),six=goods_capacity))
 		print(self.show_cargo_stats(self.cargo))
 
 		
-	def compute_capacity(self, itemlist):			# itemlist = dict of goods
+	def compute_capacity(self, itemlist, itemtype="goods"):			# itemlist = dict of goods (e.g. { "food" : 200, "arms" : 10 })
 		# return sum( goods[val] for val in goods )
 		capacity = 0
 		for item in itemlist.keys():
-			capacity += data.goods_list[item].capacity_used * itemlist[item]
+			capacity += (data.goods_list[item].capacity_used if itemtype == "goods" else data.weapons_list[item].capacity_used ) * itemlist[item]
 		return capacity
 
-	def attach_weapon(self, shipweapon):
-		self.weapons.append(shipweapon)
+	def attach_weapon(self, shipweapon):	# shipweapons = dict (e.g. { "Pulse Cannon" : 2, "Railgun" : 1 })
+		weapon_capacity = self.compute_capacity(shipweapon, "weapons")
+		if self.weapon_capacity >= self.utilized_weapon_capacity + weapon_capacity:
+			self.utilized_weapon_capacity += weapon_capacity
+			for item in shipweapon.keys():
+				self.weapons[item] = self.weapons.get(item, 0) + shipweapon[item]	# qty, not capacity
+			print(Ship.msg("weapon_loaded").format(one=self.weapon_capacity,two=self.utilized_weapon_capacity,three=self.weapon_capacity-self.utilized_weapon_capacity,four=shipweapon,five=sum(shipweapon.values()),six=weapon_capacity))
+		else:
+			print(lang.content["weapon_not_loaded"])
+		print(self.show_weapon_stats(self.weapons))
 
-	def remove_weapon(self, shipweapon):
-		self.weapons.remove(shipweapon)
 
-	def msg(self, msg_id):
-		return lang.content[msg_id]
+
+
+
+
+
+
+
+	def remove_weapon(self, shipweapon, qty):
+		self.weaponlist.remove(shipweapon)
+
+	# def msg(self, msg_id):
+		# return lang.content[msg_id]
 	
 	def show_cargo_stats(self, cargo):
 		total_capacity = 0
@@ -103,29 +134,34 @@ class Ship:
 			subtotal_capacity = data.goods_list[item].capacity_used * cargo[item]
 			total_capacity += subtotal_capacity
 
-			rows.append([data.goods_list[item].cat, cargo[item], data.goods_list[item].capacity_used, subtotal_capacity ])	# make_table() will string-ify; cargo[item] = qty
-
-		return(util.make_table(rows, lang.content["labelwidths"]))
+			rows.append([data.goods_list[item].cat, cargo[item], data.goods_list[item].capacity_used, subtotal_capacity ])	# format_table() will string-ify; cargo[item] = qty
+		return(util.format_table(rows, lang.content["thead_labels_cargo"]))
 		
+	def show_weapon_stats(self, weapon):
+		total_capacity = 0
+		rows = []
+		for item in weapon.keys():
+			subtotal_capacity = data.weapons_list[item].capacity_used * weapon[item]
+			total_capacity += subtotal_capacity
+
+			# rows.append([data.weapons_list[item][], weapon[item], data.weapons_list[item].capacity_used, subtotal_capacity ])	# format_table() will string-ify; cargo[item] = qty
+			rows.append([item, weapon[item], data.weapons_list[item].capacity_used, subtotal_capacity ])	# format_table() will string-ify; cargo[item] = qty
+		return(util.format_table(rows, lang.content["thead_labels_weapon"]))
+	
 
 '''
+# transferred to data.py
 class Goods: ...
+class Weapon: ...
 '''
 
-class ShipWeapon:
-	def __init__(self, weapon_type):
-		self.weapon_type = weapon_type
-
-		self.ammunition = 0
-		self.hitpoints = 0
-		self.damage_per_minute = 0
-		self.in_working_condition = True 		# working? destroyed?
 
 
-class Habitat:							# locations like stars, planets, moons, space stations, ports, etc. (calling them all "planets" is inacccurate)
-	def __init__(self, name, habitat_type, classification="standard"):	# e.g. ()"Moony McMoonFace", "moon", "military")
+
+class Location:							# Places like stars, biomes/planets, moons, space stations, ports, etc. (calling them all "planets" is inacccurate)
+	def __init__(self, name, location_type, classification="standard"):	# e.g. ()"Moony McMoonFace", "moon", "military")
 		self.name = name 
-		self.habitat_type = habitat_type
+		self.location_type = location_type
 		self.classification = classification
 
 		self.parent_site = object()
@@ -142,9 +178,9 @@ class Bank:
 		loan = 0.00
 
 
-class Warehouse:
+class Storage:
 	def __init__(self, location, capacity):
-		self.locatioin = location
+		self.location = location
 		self.capacity = capacity 
 
 
@@ -165,13 +201,17 @@ def ui_screens(screen="start"):
 
 # ui_screens()					# start
 
-sample_ship = Ship("USS Enterprise", "explorer", "enterprise")
+# init_ship converts strings to fully-formed list for Ship object declaration
+sample_ship = Ship(*Ship.init_ship("Prometheus", "light freighter"))
+
 
 sample_ship.load_cargo( {"arms": 2, "gadgets": 5, "minerals": 2} )
 sample_ship.load_cargo( {"food_supplies": 10, "gadgets": 9 } )
 sample_ship.load_cargo( {"arms": 10, "raw_materials": 5, "minerals": 5} )
 sample_ship.remove_cargo( {"raw_materials": 3, "arms": 2} )
-# sample_ship.remove_cargo( {"minerals": 5, "arms": 5, "gadgets": 6} )
-# sample_ship.load_cargo( {"raw_materials": 5, "arms": 5} )
+sample_ship.remove_cargo( {"minerals": 5, "arms": 5, "gadgets": 6} )
+sample_ship.load_cargo( {"raw_materials": 5, "arms": 5} )
 
-# print("Here's the results from the game: \n", sample_ship)
+sample_ship.attach_weapon( {"Pulse Cannon": 2, "Railgun": 1} )
+
+print("Here's the results from the game: \n", sample_ship)
