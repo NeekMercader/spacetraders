@@ -1,7 +1,10 @@
+import languages.en as lang
+import data.data as data
+
 #
-# maketable : create an ASCII-delimited table
-#   textlist = list of lists of content data (e.g. [["Arms",2,2,6],]) 
-#   header = list of table header labels (e.g. ["Inventory", "Qty",])
+# format_table : create an ASCII-delimited table
+#   textlist: list of lists of content data (e.g. [["Arms",2,2,6],]) 
+#   header: list of table header labels (e.g. ["Inventory", "Qty", ...])
 #
 def format_table(textlist, header):
     max_widths = [max(len(str(cell)) for cell in column) for column in zip(header, *textlist)]
@@ -19,3 +22,16 @@ def format_table(textlist, header):
     strfull = border + thead + border + strfull + border
 
     return strfull
+
+
+
+
+# Define a function that displays the map as a text output
+def display_map():
+    print(lang.content["label_header_map"])
+    print(lang.content["label_line_header_map"])
+    for planet in data.planets:
+        print(planet)
+    print(lang.content["label_line_header_map"])
+
+

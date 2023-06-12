@@ -28,4 +28,11 @@ content = {
 	# utilities
 	"thead_labels_cargo": ["Inventory", "Qty", "Capacity", "Total"],
 	"thead_labels_weapon": ["Arsenal", "Qty", "Capacity", "Total", "Damage", "Hitpoints"],
+    
+
+	# travel: planets
+	"label_header_map": "MAP OF GALACTIC SECTOR",
+    "label_line_header_map": "----------------------",
+
+
 }

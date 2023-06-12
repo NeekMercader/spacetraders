@@ -176,24 +176,24 @@ weapon_data = {
 
 
 	
-goods_list = {}		# test info about goods to trade
-# goods_list["Category"] = Goods("Category", "Name", capacity_used, baseprice)
-goods_list["minerals"] = Goods("Minerals", "Unobtanium", 10, 1000)
-goods_list["raw_materials"] = Goods("Raw Materials", "Nanomaterials", 5, 2)
-goods_list["gadgets"] = Goods("Gadgets", "Reality Distortion Field Generator", 2, 500)
-goods_list["arms"] = Goods("Arms", "Phasers", 2, 100)
-goods_list["food_supplies"] = Goods("Food Supplies", "Rations Block", 5, 2)
+goods_data = {}		# test info about goods to trade
+# goods_data["Category"] = Goods("Category", "Name", capacity_used, baseprice)
+goods_data["minerals"] = Goods("Minerals", "Unobtanium", 10, 1000)
+goods_data["raw_materials"] = Goods("Raw Materials", "Nanomaterials", 5, 2)
+goods_data["gadgets"] = Goods("Gadgets", "Reality Distortion Field Generator", 2, 500)
+goods_data["arms"] = Goods("Arms", "Phasers", 2, 100)
+goods_data["food_supplies"] = Goods("Food Supplies", "Rations Block", 5, 2)
 '''
-goods_list["medical_equipment"] = Goods("Category", "Name", capacity_used, baseprice)
-goods_list["luxury"] = Goods("Category", "Name", capacity_used, baseprice)
-goods_list["artifacts"] = Goods("Category", "Name", capacity_used, baseprice)
-goods_list["precious_metals"] = Goods("Category", "Name", capacity_used, baseprice)
-goods_list["energy_crystals"] = Goods("Category", "Name", capacity_used, baseprice)
-goods_list["alien_relics"] = Goods("Category", "Name", capacity_used, baseprice)
-goods_list["spare_parts"] = Goods("Category", "Name", capacity_used, baseprice)
-goods_list["sentient_ai_cores"] = Goods("Category", "Name", capacity_used, baseprice)
-goods_list["Category"] = Goods("Category", "Name", capacity_used, baseprice)
-goods_list["Category"] = Goods("Category", "Name", capacity_used, baseprice)
+goods_data["medical_equipment"] = Goods("Category", "Name", capacity_used, baseprice)
+goods_data["luxury"] = Goods("Category", "Name", capacity_used, baseprice)
+goods_data["artifacts"] = Goods("Category", "Name", capacity_used, baseprice)
+goods_data["precious_metals"] = Goods("Category", "Name", capacity_used, baseprice)
+goods_data["energy_crystals"] = Goods("Category", "Name", capacity_used, baseprice)
+goods_data["alien_relics"] = Goods("Category", "Name", capacity_used, baseprice)
+goods_data["spare_parts"] = Goods("Category", "Name", capacity_used, baseprice)
+goods_data["sentient_ai_cores"] = Goods("Category", "Name", capacity_used, baseprice)
+goods_data["Category"] = Goods("Category", "Name", capacity_used, baseprice)
+goods_data["Category"] = Goods("Category", "Name", capacity_used, baseprice)
 '''
 
 
@@ -203,3 +203,23 @@ weapons_list["Plasma Blaster"] = Weapon(weapon_data["Plasma Blaster"])
 weapons_list["Railgun"] = Weapon(weapon_data["Railgun"])
 
 
+
+
+
+
+
+# Define a list of planets or regions in the known galactic sector
+planets = ["Solstra", "Pulsarion", "Caelus Prime", "Draconis", "Lunaria", "Stellaria", "Galaxion"]
+
+# Define a dictionary of distances between the planets or regions in the galaxy
+# For example: distances["Solstra"]["Pulsarion"] = 100 means the distance between Solstra and Pulsarion is 100 units
+# Note: Currently kind of brute-force; can later be refactored to a matrix format with mapped unit coordinates in 3-dimensions 
+distances = {
+    "Solstra": {"Pulsarion": 100, "Caelus Prime": 200, "Draconis": 300, "Lunaria": 400, "Stellaria": 500, "Galaxion": 600},
+    "Pulsarion": {"Solstra": 100, "Caelus Prime": 100, "Draconis": 200, "Lunaria": 300, "Stellaria": 400, "Galaxion": 500},
+    "Caelus Prime": {"Solstra": 200, "Pulsarion": 100, "Draconis": 100, "Lunaria": 200, "Stellaria": 300, "Galaxion": 400},
+    "Draconis": {"Solstra": 300, "Pulsarion": 200, "Caelus Prime": 100, "Lunaria": 100, "Stellaria": 200, "Galaxion": 300},
+    "Lunaria": {"Solstra": 400, "Pulsarion": 300, "Caelus Prime": 200, "Draconis": 100, "Stellaria": 100, "Galaxion": 200},
+    "Stellaria": {"Solstra": 500, "Pulsarion": 400, "Caelus Prime": 300, "Draconis": 200, "Lunaria": 100, "Galaxion": 100},
+    "Galaxion": {"Solstra": 600, "Pulsarion": 500, "Caelus Prime": 400, "Draconis": 300, "Lunaria": 200, "Stellaria": 100}
+}
