@@ -204,9 +204,9 @@ weapons_list["Railgun"] = Weapon(weapon_data["Railgun"])
 
 
 
+events_space_travel = ["nothing", "pirate_attack" ,"alien_attack", "wormhole", "asteroid_shower"]
 
-
-
+# events = ["nothing", "pirate_attack", "wormhole", "accident", "asteroid_shower", "angry_loansharks", "space_debris_collision", "engine_malfunction", "alien_encounter", "solar_flare", "cargo_theft", "engine_upgrade_opportunity", "distress_signal", "black_hole_encounter", "trading_opportunity", "navigation_failure", "space_station_malfunction", "planet_exploration", "sabotage_attempt", "mysterious_artifact"]
 
 # Define a list of planets or regions in the known galactic sector
 planets = ["Solstra", "Pulsarion", "Caelus Prime", "Draconis", "Lunaria", "Stellaria", "Galaxion"]
