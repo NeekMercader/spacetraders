@@ -26,6 +26,17 @@ class Creature:							# lifeform (human, alien, droid)
 		self.type = []					# e.g. "trader", "warlord", "loanshark", "thug", "police", "military"
 		self.ship = object()
 		self.fleet = {}
+
+class Location:							# Places like stars, biomes/planets, moons, space stations, ports, etc. (calling them all "planets" is inacccurate)
+	def __init__(self, name, location_type, classification="standard"):	# e.g. ()"Moony McMoonFace", "moon", "military")
+		self.name = name 
+		self.location_type = location_type
+		self.classification = classification
+
+		self.parent_site = object()
+		self.coords = ""
+		self.description = ""
+
 '''
 
 class Player:
@@ -77,8 +88,9 @@ class Ship:
 		self.cargo_capacity = cargo
 		self.weapon_capacity = weapon
 		self.passenger_capacity = passenger
-		self.owner = owner				# player ID (and company name) (default: #1)
+		self.owner = owner if owner in range(4) else len(player_list)				# player ID (and company name) (default: #1)
 		self.fleet = fleet				# fleet ID# (not qty) (default: #1)
+		self.player = player_list[self.owner - 1]	# player_list = list of Player instances. [self.owner + 1] = NPC
 
 		self.shields = 100				# shield strength (and health) (in %)
 		self.health = 10000 if owner > 0 else 2500				# health (<10 = can't warp; 0 = total damage (scrap) )
@@ -96,6 +108,10 @@ class Ship:
 	
 	def __repr__(self):
 		return Ship.msg("repr_ship").format(name=self.name, ship_type=self.ship_type, ship_class = self.ship_class, passenger_capacity = self.passenger_capacity, cargo_capacity = self.utilized_cargo_capacity, weapons_capacity = self.utilized_weapon_capacity, cargo = self.cargo, weapons = self.weapons)
+
+	def set_curr_location(self, location):
+		self.player.curr_location = location
+		self.curr_location = location
 
 	def load_cargo(self, goods):		# goods = dict (e.g. { "food" : 200, "arms" : 10 })
 		goods_capacity = self.compute_capacity(goods)
@@ -189,15 +205,6 @@ class Ship:
 			rows.append([item, weapon[item], data.weapons_list[item].capacity_used, subtotal_capacity, data.weapons_list[item].damage_per_minute, data.weapons_list[item].hitpoints ])	# format_table() will string-ify; weapon[item] = qty
 		return(util.format_table(rows, lang.content["thead_labels_weapon"]))
 	
-	# (For CombatSystem class)
-	'''
-	def take_damage(self, damage):
-		self.health -= damage
-		if self.health < 0:		# If the ship's health drops below 0, set it to 0
-			self.health = 0
-		print(f"{self.name} takes {damage} damage. Current health is {self.health}.")
-		
-	'''
 	def take_damage(self, damage):
 		self.shields -= damage
 		if self.shields < 0:
@@ -215,17 +222,6 @@ class Ship:
 class Goods: ...
 class Weapon: ...
 '''
-
-
-class Location:							# Places like stars, biomes/planets, moons, space stations, ports, etc. (calling them all "planets" is inacccurate)
-	def __init__(self, name, location_type, classification="standard"):	# e.g. ()"Moony McMoonFace", "moon", "military")
-		self.name = name 
-		self.location_type = location_type
-		self.classification = classification
-
-		self.parent_site = object()
-		self.coords = ""
-		self.description = ""
 
 
 class Bank:
@@ -470,19 +466,53 @@ class Maintenance:
 			print("You can't repair your ship.")
 
 
+class TravelSystem:
+
+	@staticmethod
+	def expand_selection(input_char):
+		return planets[int(input_char) - 1]	# convert input char to planet name string (based on index #)
+
+	def __init__(self, ship):		# player = Player object; provides Ship and location info
+		self.ship = ship
+
+	def travel_start(self):
+		selection = TravelSystem.expand_selection(UISystem.ui_screens("travel"))
+		print(f"Traveling to {selection}...\n")
+
+		# EventSystem()
+		print(f"Arriving in {selection}...\n")
+		self.ship.set_curr_location(selection)
+
+
+		
+
+	def travel_arrival(self):
+		
+		selection = TravelSystem.expand_selection(UISystem.ui_screens("main"))
+
+		# set player location
+
+
+
 '''
 
 class EventSystem:
-	def __init__(self, event):
+	def __init__(self, ship):
+		self.ship = ship	# Ship instance
+		
+		event = data.eventlist[random.randint(1, len(eventlist))]
+		print(f"\nInside EventSystem, current event is {event}.\n")
+
 		if event == "nothing":
 			pass
 		elif event == "pirate_attack":
-
+			pass
 		elif event == "alien_attack":
-
+			pass
 		elif event == "wormhole":
-
-		elif event == "asteroid_shower"
+			pass
+		elif event == "asteroid_shower":
+			pass
 '''
 
 
@@ -550,21 +580,39 @@ class CombatSystem:
 
 
 
-
-def ui_screens(screen="start"):
-	if screen == "start":
-		
-		print(views.content["branding_title"])
-
-		player_name = input(lang.content["temp_enter_name"])
-		player_menu_select = input(views.content["select_main"]).lower()
-		print(lang.content["temp_print_selection"].format(player_name=player_name, player_menu_select=player_menu_select))
+class UISystem:
+	@staticmethod
+	def ui_screens(screen="start"):
+		if screen == "start":
+			print(views.content["branding_title"])
+			player_name = input(lang.content["temp_enter_name"])
+			player_menu_select = input(views.content["select_main"]).lower()
+			print(lang.content["temp_print_selection"].format(player_name=player_name, player_menu_select=player_menu_select))
+		elif screen == "main":
+			player_menu_select = input(views.content["select_main"]).lower()
+		elif screen == "travel":
+			player_menu_select = input(views.content["select_travel"]).lower()
+		return player_menu_select
 
 
 
 #################### (main)
 
-# ui_screens()					# start
+# UISystem.ui_screens()					# start
+
+
+# initialize player
+player_01 = Player()	# player_id=1, player_username="SirLootALot", initial_balance=0)
+
+player_list = []
+player_list.append(player_01)
+
+player_01.storage.update( {"Solstra": Storage("Solstra", 50000)} )	# test only; can be instantiated by other means
+player_01.balance = 50000
+player_01.storage["Solstra"].add_item("Pulse Cannon",5)	# later "Solstra" changed to curr_loc
+player_01.storage["Solstra"].add_item("Railgun",7)
+player_01.storage["Solstra"].remove_item("Pulse Cannon",2)
+player_01.storage["Solstra"].add_item("Graviton Beam",2)
 
 
 # init_ship converts strings to fully-formed list for Ship object declaration
@@ -580,14 +628,7 @@ sample_ship.attach_weapon( {"Pulse Cannon": 2, "Railgun": 1} )
 sample_ship.attach_weapon( {"Plasma Blaster": 2, "Railgun": 1} )
 sample_ship.remove_weapon( {"Pulse Cannon": 1, "Plasma Blaster": 1})
 
-# initialize player
-player_01 = Player()	# player_id=1, player_username="SirLootALot", initial_balance=0)
-player_01.storage.update( {"Solstra": Storage("Solstra", 50000)} )	# test only; can be instantiated by other means
-player_01.balance = 50000
-player_01.storage["Solstra"].add_item("Pulse Cannon",5)	# later "Solstra" changed to curr_loc
-player_01.storage["Solstra"].add_item("Railgun",7)
-player_01.storage["Solstra"].remove_item("Pulse Cannon",2)
-player_01.storage["Solstra"].add_item("Graviton Beam",2)
+# transfer weapons between ship and storage
 player_01.storage["Solstra"].transfer_to_ship(sample_ship, "Railgun", 3)
 player_01.storage["Solstra"].receive_from_ship(sample_ship, "Railgun", 2)
 

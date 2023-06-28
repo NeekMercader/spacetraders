@@ -211,6 +211,7 @@ events_space_travel = ["nothing", "pirate_attack" ,"alien_attack", "wormhole", "
 # Define a list of planets or regions in the known galactic sector
 planets = ["Solstra", "Pulsarion", "Caelus Prime", "Draconis", "Lunaria", "Stellaria", "Galaxion"]
 
+# Note: This is intended for future expansion
 # Define a dictionary of distances between the planets or regions in the galaxy
 # For example: distances["Solstra"]["Pulsarion"] = 100 means the distance between Solstra and Pulsarion is 100 units
 # Note: Currently kind of brute-force; can later be refactored to a matrix format with mapped unit coordinates in 3-dimensions 
