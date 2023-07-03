@@ -5,7 +5,8 @@ content = {
     #"temp_print_selection" : "\nOK, " + player_name + ", you selected: '" + player_menu_select + "'.\n\n(Note: This is a pre-alpha version and meant to show you input works and ready to process.)\n\n",
 	"temp_print_selection" : "\nOK, {player_name}, you selected: '{player_menu_select}'.\n\n(Note: This is a pre-alpha version and meant to show you input works and ready to process.)\n\n",
 
-
+	# Player
+	"not_enough_balance": "Not enough balance.",
 
 	# Cargo
 
@@ -16,9 +17,9 @@ content = {
     
 	# Weapon
 
-	"weapon_loaded": "Weapon has been loaded: {four}\n(Qty: {five}, Capacity: {six})\nTotal capacity used: {two} of {one} (Remaining: {three})",
+	"weapon_loaded": "Weapon has been loaded to ship: {four}\n(Qty: {five}, Capacity: {six})\nTotal capacity used: {two} of {one} (Remaining: {three})",
 	"weapon_not_loaded": "Weapon was not loaded. Item mismatch or quantity of weapons exceed storage capacity.",
-	"weapon_removed": "Weapon has been removed: {four}\n(Qty: {five}, Capacity: {six})\nTodal capacity used: {two} of {one} (Remaining: {three})",
+	"weapon_removed": "Weapon has been removed from ship: {four}\n(Qty: {five}, Capacity: {six})\nTodal capacity used: {two} of {one} (Remaining: {three})",
 	"weapon_not_removed" : "Weapon not removed! Attempting to remove a weapon that is nonexistent or capacity entered to remove is more than weapon quantity.",
     	
 
@@ -33,6 +34,25 @@ content = {
 	# travel: planets
 	"label_header_map": "MAP OF GALACTIC SECTOR",
     "label_line_header_map": "----------------------",
+    
+	# Bank
+	"deposited_to_bank": "Deposited {amount} credits into the bank.",
+    "invalid_deposit": "Invalid deposit amount.",
+    "invalid_withdrawal": "Invalid withdrawal amount or insufficient balance.",
+    "loan_paid": "You have paid off your loan.",
+    "loan_unpaid": "Insufficient funds to pay off the loan.",
+    "loan_overdue": "You have an overdue loan. Please pay it off immediately!",
+    "not_loan_overdue": "No overdue loan.",
+    
+	# Maintenance
+	"ship_repair_health": "You repaired your ship by {ship_health} health.",
+    "cannot_repair_ship": "You can't repair your ship.",
+    
+	# CombatSystem
+	"ship_destroyed": "Your ship is destroyed. You were defeated!\n",
+    "enemy_defeated": "You defeated the enemies!\n",
+    "battle_draw": "The battle was a draw!\n",
+
 
 
 }

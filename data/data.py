@@ -203,8 +203,8 @@ weapons_list["Plasma Blaster"] = Weapon(weapon_data["Plasma Blaster"])
 weapons_list["Railgun"] = Weapon(weapon_data["Railgun"])
 
 
-
-events_space_travel = ["nothing", "pirate_attack" ,"alien_attack", "wormhole", "asteroid_shower"]
+# Event types; Note: Must coincide with EventSystem class list
+eventlist = ["nothing", "pirate_attack" ,"alien_attack", "wormhole", "asteroid_shower"]
 
 # events = ["nothing", "pirate_attack", "wormhole", "accident", "asteroid_shower", "angry_loansharks", "space_debris_collision", "engine_malfunction", "alien_encounter", "solar_flare", "cargo_theft", "engine_upgrade_opportunity", "distress_signal", "black_hole_encounter", "trading_opportunity", "navigation_failure", "space_station_malfunction", "planet_exploration", "sabotage_attempt", "mysterious_artifact"]
 

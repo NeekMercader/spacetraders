@@ -1,6 +1,13 @@
 import languages.en as lang
 import data.data as data
 
+
+# display message
+@staticmethod
+def msg(msg_id):
+    return lang.content[msg_id]
+
+
 #
 # format_table : create an ASCII-delimited table
 #   textlist: list of lists of content data (e.g. [["Arms",2,2,6],]) 
@@ -33,5 +40,4 @@ def display_map():
     for planet in data.planets:
         print(planet)
     print(lang.content["label_line_header_map"])
-
 
