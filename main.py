@@ -2,6 +2,7 @@
 	### Space Traders ###
 	A space trading simulator.
 '''
+from typing import Any
 import languages.en as lang
 import views.en as views
 import data.data as data
@@ -37,13 +38,38 @@ class Location:							# Places like stars, biomes/planets, moons, space stations
 		self.coords = ""
 		self.description = ""
 
+class Weapon:
+	def __init__(self, weapon_dict):	# e.g. { "Railgun": { "Weapon Class": "Projectile", "Damage Per Minute": 150, "Hitpoints": 250, "Capacity Used": 10, "Range": "500 meters", "Regeneration Time": 5 } }
+		self.weapon_name = (*weapon_dict,)		
+		self.in_working_condition = True 		# working? destroyed?
+		self.capacity_used = weapon_dict["Capacity Used"]
+		self.damage_per_minute = weapon_dict["Damage Per Minute"]
+		self.hitpoints = weapon_dict["Hitpoints"]
+		return
+
+class Goods:
+	def __init__(self, cat, name, capacity_used, baseprice):
+		self.cat = cat				# category (deprecated: self.sku = sku)
+		self.name = name
+		self.capacity_used = capacity_used	# capacity amount used by this unit
+		self.baseprice = baseprice	# suggested retail (standard)
+		
+	def __repr__(self):
+		return str(dir(self))
+	
+
 '''
 
 class Player:
-	def __init__(self, player_id=1, player_username="SirLootALot", initial_balance=0):	# balance = money
+	def __init__(self, player_id=1, player_username="SirLootALot", initial_balance=0, initial_bank_balance=0):	# balance = money
 		self.player_id = player_id
 		self.player_username = player_username
-		self.balance = initial_balance
+		self.balance = initial_balance	# money (cash) on hand
+		self.bank_balance = initial_bank_balance	# bank deposit
+		self.loan = 0
+		self.syndicate_loan = 0
+		self.hit_order = 0	# at level 2, thugs; at 3, kill order; at 4, all-out (John Wick style)
+		self.no_repeat_switch = False	# don't repeat harassing or adding to hit_order from method 
 
 		self.curr_location = "Solstra"
 		self.reputation = 0
@@ -84,12 +110,12 @@ class Ship:
 		self.cargo_capacity = cargo
 		self.weapon_capacity = weapon
 		self.passenger_capacity = passenger
-		self.owner = owner if owner in range(4) else len(player_list)				# player ID (and company name) (default: #1)
+		self.owner = owner if owner in range(data.NUMBER_OF_PLAYERS) else len(player_list)				# (default: #1) above NUMBER_OF_PLAYERS means (enemy) NPC
 		self.fleet = fleet				# fleet ID# (not qty) (default: #1)
 		self.player = player_list[self.owner - 1]	# player_list = list of Player instances. [len(self.owner) + 1] = NPC
 
 		self.shields = 1000				# shield strength (and health)
-		self.health = 10000 if owner > 0 else 2500				# health (<10 = can't warp; 0 = total damage (scrap) )
+		self.health = data.STD_SHIP_HEALTH if owner > 0 else data.ENEMY_SHIP_HEALTH		# health standard: player: 10000 / enemy: 2500 )
 		self.ship_mods = {}		# warp boosters, shield boost, custom phasers, expanded cargo holds
 
 		self.utilized_passenger_capacity = 1
@@ -107,22 +133,22 @@ class Ship:
 		self.player.curr_location = location
 		self.curr_location = location
 
-	def load_cargo(self, goods):		# goods = dict (e.g. { "food" : 200, "arms" : 10 })
+	def load_cargo(self, goods, show_stats=False):		# goods = dict (e.g. { "food" : 200, "arms" : 10 })
 		goods_capacity = self.compute_capacity(goods)
 		if self.cargo_capacity >= self.utilized_cargo_capacity + goods_capacity:
 			self.utilized_cargo_capacity += goods_capacity
 			for item in goods.keys():
 				self.cargo[item] = self.cargo.get(item, 0) + goods[item] # item qty, not capacity 
 
-			print(util.msg("cargo_loaded".format(one=self.cargo_capacity,two=self.utilized_cargo_capacity,three=self.cargo_capacity-self.utilized_cargo_capacity,four=goods,five=sum(goods.values()),six=goods_capacity)))
+			print(util.msg("cargo_loaded").format(one=self.cargo_capacity,two=self.utilized_cargo_capacity,three=self.cargo_capacity-self.utilized_cargo_capacity,four=goods,five=sum(goods.values()),six=goods_capacity))
 		else:
 			print(util.msg("cargo_not_loaded"))
 			return False
 		# print(self.show_cargo_stats(goods))
-		print(self.show_cargo_stats(self.cargo))
+		if show_stats == True: print(self.show_cargo_stats())	# .show_cargo_stats(self.cargo))
 		return True
 			
-	def remove_cargo(self, goods):			# goods = dict (e.g. { "food" : 200, "arms" : 10 })
+	def remove_cargo(self, goods, show_stats=False):			# goods = dict (e.g. { "food" : 200, "arms" : 10 })
 		for item in goods.keys():			# check if quantities declared actually exist
 			# if (self.cargo[item] < goods[item]):
 			if (self.cargo.get(item,0) < goods[item]):
@@ -134,8 +160,8 @@ class Ship:
 				del self.cargo[item]		# if 0, remove entire item
 		goods_capacity = self.compute_capacity(goods)		# check total capacity used
 		self.utilized_cargo_capacity -= goods_capacity	# update counters
-		print(util.msg("cargo_removed".format(one=self.cargo_capacity,two=self.utilized_cargo_capacity,three=self.cargo_capacity-self.utilized_cargo_capacity,four=goods,five=sum(goods.values()),six=goods_capacity)))
-		print(self.show_cargo_stats(self.cargo))
+		print(util.msg("cargo_removed").format(one=self.cargo_capacity,two=self.utilized_cargo_capacity,three=self.cargo_capacity-self.utilized_cargo_capacity,four=goods,five=sum(goods.values()),six=goods_capacity))
+		if show_stats == True: print(self.show_cargo_stats())		# .show_cargo_stats(self.cargo))
 		return True
 
 
@@ -145,7 +171,7 @@ class Ship:
 			self.utilized_weapon_capacity += weapon_capacity
 			for item in shipweapon.keys():
 				self.weapons[item] = self.weapons.get(item, 0) + shipweapon[item]	# qty, not capacity
-			print(util.msg("weapon_loaded".format(one=self.weapon_capacity,two=self.utilized_weapon_capacity,three=self.weapon_capacity-self.utilized_weapon_capacity,four=shipweapon,five=sum(shipweapon.values()),six=weapon_capacity)))
+			print(util.msg("weapon_loaded").format(one=self.weapon_capacity,two=self.utilized_weapon_capacity,three=self.weapon_capacity-self.utilized_weapon_capacity,four=shipweapon,five=sum(shipweapon.values()),six=weapon_capacity))
 		else:
 			print(util.msg("weapon_not_loaded"))
 			return False
@@ -175,33 +201,34 @@ class Ship:
 		# return sum( goods[val] for val in goods )
 		capacity = 0
 		for item in itemlist.keys():
-			capacity += (data.goods_data[item].capacity_used if itemtype == "goods" else data.weapons_list[item].capacity_used ) * itemlist[item]
+			capacity += (data.goods_data[item]["capacity used"] if itemtype == "goods" else data.weapon_data[item]["Capacity Used"] ) * itemlist[item]
 		return capacity
 
-	def show_cargo_stats(self, cargo):
+	def show_cargo_stats(self):
+		cargo = self.cargo
 		total_capacity = 0
 		rows = []
 		for item in cargo.keys():
-			subtotal_capacity = data.goods_data[item].capacity_used * cargo[item]
+			subtotal_capacity = data.goods_data[item]["capacity used"] * cargo[item]
 			total_capacity += subtotal_capacity
 
-			rows.append([data.goods_data[item].cat, cargo[item], data.goods_data[item].capacity_used, subtotal_capacity ])	# format_table() will string-ify; cargo[item] = qty
+			rows.append([data.goods_data[item]["cat"], cargo[item], data.goods_data[item]["capacity used"], subtotal_capacity ])	# format_table() will string-ify; cargo[item] = qty
 		return(util.format_table(rows, lang.content["thead_labels_cargo"]))
-		
+	
 	def show_weapon_stats(self, weapon):
 		total_capacity = 0
 		rows = []
 		for item in weapon.keys():
-			subtotal_capacity = data.weapons_list[item].capacity_used * weapon[item]
+			subtotal_capacity = data.weapon_data[item]["Capacity Used"] * weapon[item]
 			total_capacity += subtotal_capacity
 
-			# rows.append([item, weapon[item], data.weapons_list[item].capacity_used, subtotal_capacity ])	# format_table() will string-ify; weapon[item] = qty
-			rows.append([item, weapon[item], data.weapons_list[item].capacity_used, subtotal_capacity, data.weapons_list[item].damage_per_minute, data.weapons_list[item].hitpoints ])	# format_table() will string-ify; weapon[item] = qty
+			# rows.append([item, weapon[item], data.weapon_data[item]["Capacity Used"], subtotal_capacity ])	# format_table() will string-ify; weapon[item] = qty
+			rows.append([item, weapon[item], data.weapon_data[item]["Capacity Used"], subtotal_capacity, data.weapon_data[item]["Damage Per Minute"], data.weapon_data[item]["Hitpoints"] ])	# format_table() will string-ify; weapon[item] = qty
 		return(util.format_table(rows, lang.content["thead_labels_weapon"]))
 	
 	def take_damage(self, damage):
 		if self.shields > 0:
-			print("{name} has {health} health (shields: {shields})\n".format(name=self.name, health=self.health, shields=self.shields))
+			print(util.msg("take_damage_shields").format(name=self.name, health=self.health, shields=self.shields))
 		self.shields -= damage
 		if self.shields < 0:
 			self.health += self.shields
@@ -211,80 +238,193 @@ class Ship:
 			print(f"Ship {self.name} has been destroyed!")
 			return 
 		# print(f"{self.name} takes {damage} damage. {self.name} health is {self.health} (shields: {self.shields}).")
-		print("{name} takes {damage} damage. {name} health is {health} (shields: {shields}).".format(name=self.name, damage=damage, health=self.health, shields=self.shields))
+		print(util.msg("take_damage").format(name=self.name, damage=damage, health=self.health, shields=self.shields))
 	
-
-'''
-# transferred to data.py
-class Goods: ...
-class Weapon: ...
-'''
-
-
-class Bank:
-
-	STD_INTEREST_RATE = 0.1  # 10% interest per year (365 turns)
-	LOANABLE_AMT = 0.5  # Loan at 50% of net worth
-
-	def __init__(self, player_id=1, location="Solstra"):
-		self.player_id = player_id
-		self.location = location
-		self.balance = 0.0
-		self.loan = 0.0
-		self.interest_rate = STD_INTEREST_RATE
-
-	'''
 	@staticmethod
-	def testprint():
-		amount = 520.00
-		print("\n\n\n\n\n\n\n\n\n@@@@@@@@@@", util.msg("deposited_to_bank").format(amount=amount), "@@@@@@@@@@\n\n\n\n\n\n\n\n\n",)
-	'''
+	def random_ships_and_weapons(quantity, name_type="player"):		# which list? "player" (default) or "enemy"
+		names = []
+		if name_type == "player":
+			random_names = data.ship_names
+		elif name_type == "enemy":
+			random_names = data.enemy_ship_names
+		elif name_type == "ship_types":
+			random_names = list(data.ship_data.keys())
+		elif name_type == "weapon_types":
+			random_names = list(data.weapon_data.keys())
+		else:
+			pass
 
+		# indices = random.sample(range(len(random_names)), quantity)	# Generate random indices without duplicates
+		shiplist = random.sample(random_names, quantity)
+		for shipitem in shiplist:	# Get names corresponding to the random indices
+			# names.append(random_names[idx])
+			names.append(shipitem)
+		return names
+
+
+class LoanSystem:
+
+	def __init__(self, player, loan_source="bank"):
+		pass
+
+
+	# Loan money to the player.
+	def loan_money(self, player):
+		loanable_amt = data.STD_LOANABLE_AMT if loan_source == "bank" else data.SYNDICATE_LOANABLE_AMT
+		loan_amount = (player.balance + player.bank_balance) * loanable_amt
+		player.loan = loan_amount
+		player.balance += loan_amount
+		print(f"You have borrowed ${loan_amount:.2f} from the bank.")
+
+	# Pay off the loan.
+	def pay_loan(self, player):
+		print(util.msg("player_balance").format(balance=player.balance))
+		if player.loan == 0: return	# there is no loan balance to begin
+		amt = int(input(util.msg("how_much_to_pay").format(player_loan=player.loan)))
+		while (amt > player.balance) or (amt > player.loan) or (amt <= 0):
+			print(util.msg("amount_out_of_range"))
+			amt = int(input(util.msg("how_much_to_pay").format(player_loan=player.loan)))
+		player.balance -= amt
+		player.loan -= amt
+
+		if player.loan == 0:
+			print(util.msg("loan_paid"))
+		elif player.loan > 0:
+			print(util.msg("loan_partially_paid").format(outstanding_loan=player.loan))
+		else:
+			print(util.msg("loan_amt_invalid"))
+
+	# Calculate and apply interest on the loan.
+	def calculate_interest(self, player):
+		interest_rate = data.STD_INTEREST_RATE if loan_source == "bank" else data.SYNDICATE_INTEREST_RATE
+		interest = player.loan * interest_rate
+		player.loan += interest
+		print(f"Interest applied: ${interest:.2f}")
+
+	# Harass the player if the loan is past due.
+	def remind_of_loan(self, player, severity):
+		if player.loan > 0:
+			print(util.msg("loan_overdue"))
+			if severity >= data.LOAN_SEVERITY_LEVEL[2]:	# if over threshold, player is marked
+				player.hit_order = severity
+		return
+
+
+class Bank(LoanSystem):
+	def __init__(self, player, location="Solstra"):	# loan_source: "bank", "syndicate"
+		self.location = location
+		super().__init__(player, "bank")	# access  loan engine superclass parent
+		
 	# Deposit money into the bank.
-	def deposit(self, amount):
+	def deposit(self, player, amount):
 		if amount > 0:
-			self.balance += amount
+			player.bank_balance += amount
 			# print(f"Deposited ${amount:.2f} into the bank.")
 			print(util.msg("deposited_to_bank").format(amount=amount))
 		else:
 			print(util.msg("invalid_deposit"))
 
 	# Withdraw money from the bank.
-	def withdraw(self, amount):
-		if amount > 0 and self.balance >= amount:
-			self.balance -= amount
+	def withdraw(self, player, amount):
+		if amount > 0 and player.balance >= amount:
+			player.bank_balance -= amount
 			print(f"Withdrawn ${amount:.2f} from the bank.")
 		else:
-			print("invalid_withdrawal")
+			print(util.msg("invalid_withdrawal"))
 
-	# Loan money to the player.
-	def loan_money(self, player):
-		loan_amount = player.balance * LOANABLE_AMT
-		self.loan = loan_amount
-		player.balance += loan_amount
-		print(f"You have borrowed ${loan_amount:.2f} from the bank.")
+class Syndicate(LoanSystem):
+	def __init__(self, player, location="Solstra"):
+		super().__init__(player, "syndicate")
 
-	# Pay off the loan.
-	def pay_loan(self, player):
-		if player.balance >= self.loan:
-			player.balance -= self.loan
-			self.loan = 0.0
-			print(util.msg("loan_paid"))
+	def compel_meeting():
+		print(util.msg("compel_meeting"))	# separate from ArrivalRoutine that activates visit
+		return
+	
+	@staticmethod
+	def add_hit_order(player):
+		if player.no_repeat_switch == False:
+			player.no_repeat_switch = True	# no need to keep repeating
+			player.hit_order += 1
+		print(f"\n\n@@@\nTEST: Balance: {player.balance} | Hit order: {player.hit_order} | No repeat switch: {player.no_repeat_switch} \n@@@\n\n")
+
+	@staticmethod
+	def remove_hit_order(player):
+		if player.no_repeat_switch == True:
+			player.no_repeat_switch = False
+			player.hit_order -= 1 
+
+	@staticmethod
+	def do_favor(player):
+		donation_amt = random.randint(int(player.balance * .05), int(player.balance * .30))	# currently set between 5% - 30% of player's cash on hand
+		print(util.msg("do_favor").format(donation_amt=donation_amt))
+		favor = input("Will you donate? ").lower()
+		if favor == 'y' or favor == lang.content["yes"]:
+			player.balance -= donation_amt
+			player.hit_order -= 1 if player.hit_order > 0 else 0	# not zero, in case there are multiple hit ordrers
+			player.no_repeat_switch = False	# no need to keep repeating invitation to meet Syndicate
+			print(f"\n\n@@@\nTEST: Balance: {player.balance} | Hit order: {player.hit_order} | No repeat switch: {player.no_repeat_switch} \n@@@\n\n")
+			return True
 		else:
-			print(util.msg("loan_unpaid"))
+			Syndicate.add_hit_order(player)
+		return False
 
-	# Calculate and apply interest on the loan.
-	def calculate_interest(self):
-		interest = self.loan * self.interest_rate
-		self.loan += interest
-		print(f"Interest applied: ${interest:.2f}")
+	@staticmethod
+	def delinquency():
+		print(util.msg("delinquency"))
+		return
 
-	# Harass the player if the loan is past due.
-	def harass_player(self, player):
-		if self.loan > 0 and player.balance < self.loan:
-			print(util.msg("loan_overdue"))
+	@staticmethod
+	def beatdown(player):
+		print(util.msg("beatdown"))
+		player.balance = 0		# all carryon cash is stolen
+		return
+
+
+class ArrivalRoutines:	# note: call standard_routines()
+	def __init__(self):
+		self.days = 0
+
+	def standard_routines(self, player, ship):
+		self.days += 1		# add a routine day
+
+		self.update_interest(player)
+		# self.check_ship_health(ship)
+		# self.syndicate_visit(player)
+		self.police_raid(player, ship)
+
+	def update_interest(self, player):									# update counters
+		player.bank_balance *= int(data.STD_INTEREST_RATE / 365)			# bank interest
+		player.loan *= int(data.STD_LOAN_INTEREST_RATE / 365)				# bank's loan's interest (opporesive!)
+		player.syndicate_loan *= int(data.SYNDICATE_INTEREST_RATE / 365)	# syndicate's loan's interest (opporesive!)
+
+	# check if repairs or maintenance needed
+	def check_ship_health(self, ship):
+		if ship.health < data.STD_SHIP_HEALTH:
+			repair = input(util.msg("ask_repair_ship")).lower()
+			if repair == 'y':
+				Maintenance.repair_ship(ship)
+
+	def syndicate_visit(self, player):
+		Syndicate.compel_meeting()
+		decision = input(util.msg("ask_visit_syndicate")).lower()
+		if decision == 'y':
+			print(util.msg("visiting_syndicate"))
+			time.sleep(1)
+			Syndicate.do_favor(player)
 		else:
-			print(util.msg("not_loan_overdue"))
+			Syndicate.add_hit_order(player)
+		return
+		
+	# police_raid
+	def police_raid(self, player, ship):
+		if "contraband" in ship.cargo:
+			if 1: # if (random.randint(1, 5) == 1):		# 20% odds, 1 in 5
+				fine = ship.cargo["contraband"] * (player.balance * 0.05) 	# fine = contraband * (5% of cash balance)
+				del ship.cargo["contraband"]
+				player.balance -= int(fine)
+				print(util.msg("police_confiscation").format(fine=fine, balance=player.balance))
+
+
 
 
 class Storage:
@@ -306,7 +446,7 @@ class Storage:
 		# get capacity multiplier for the item from the item dict
 		if item not in data.goods_data and item not in data.weapon_data:
 			return -1
-		return (data.goods_data[item].capacity_used * qty) if item in data.goods_data else (data.weapon_data[item]["Capacity Used"]) * qty
+		return (data.goods_data[item]["capacity used"] * qty) if item in data.goods_data else (data.weapon_data[item]["Capacity Used"]) * qty
 
 	# Check the qty of a specific item in storage.
 	def check_item_qty(self, item):
@@ -408,13 +548,6 @@ class TradingMarketplace:
 	# get item info dict 
 	def get_item_dict(self, item_type):
 		return self.market.get(item_type, {})
-	'''
-	def get_item_dict(self, item_type):
-		if item_type in self.market:
-			return self.market[item_type]
-		else:
-			print ("Invalid item type: {item_type}.".format())
-	'''
 
 	# Get the qty of a specific item in the marketplace
 	def get_item_qty(self, item_type, item_id):
@@ -432,19 +565,18 @@ class Maintenance:
 		pass 
 
 	# repairs the ship's health by a certain amount based on player money and availability of parts
-	def repair_ship(self, ship, damage, repair_percentage=1.00):	# percentage: 100%
-		self.ship = ship
-		self.owner = self.ship.owner
+	def repair_ship(ship):	# percentage: 100%
+		# ship = ship
+		player = ship.player
 
-		# REPAIR_CONST = .20		  # percentage to compute
-		REPAIR_PER_DAMAGE = 100	 # cost per unit damage
+		damage = data.STD_SHIP_HEALTH - ship.health
 
-		money_needed = int(damage * repair_percentage * REPAIR_PER_DAMAGE)
+		money_needed = int(damage * data.REPAIR_PER_DAMAGE)	# money_needed = int(damage * repair_percentage * REPAIR_PER_DAMAGE)
 
-		if self.owner.balance >= money_needed:	  # do we have enough money available?
-			self.owner.balance -= money_needed
-			ship_health += int(repair_percentage * damage)
-			print(util.msg("ship_repair_health").format(ship_health=ship_health))
+		if player.balance >= money_needed:	  # do we have enough money available?
+			player.balance -= money_needed
+			ship.health += int(damage)	# . += int(repair_percentage * damage)
+			print(util.msg("ship_repair_health").format(ship_health=ship.health))
 		else:
 			print(util.msg("cannot_repair_ship"))
 
@@ -463,26 +595,30 @@ class TravelSystem:
 		print(f"Traveling to {selection}...\n")
 
 		# time.sleep(1)
-		EventSystem(self)
+		EventSystem()
 		# time.sleep(1)
 
 		
 		print(f"Arriving in {selection}...\n")
 		self.set_curr_location(selection)		# set ship location; later, fleet can have different locations
 		self.player.curr_location = selection	# player location; fleet ships can be scattered in diff locations
-		selection = TravelSystem.expand_selection(UISystem.ui_screens("main"))		# arrival
+		# selection = TravelSystem.expand_selection(UISystem.ui_screens("main"))		# arrival
 
 
 
 class EventSystem:
-	def __init__(self, ship):
-		self.ship = ship	# Ship instance
+	def __init__(self):
+		# self.ship = ship	# Ship instance
 		
 		event = data.eventlist[random.randint(1, len(data.eventlist) - 1)]
 		print("\n\n\n\n\n#################################")
 		print(f"\nInside EventSystem, current event is {event}.\n")
 		print("#################################\n\n\n\n\n")
 
+		enemy_ships = CombatSystem.get_enemy_ships()
+		combat_01 = CombatSystem(sample_ship, enemy_ships)
+		combat_01.fight()
+		'''
 		if event == "nothing":
 			pass
 		elif event == "pirate_attack" or event == "alien_attack":
@@ -498,7 +634,7 @@ class EventSystem:
 			pass
 		elif event == "asteroid_shower":
 			pass
-
+		'''
 		return
 
 
@@ -517,14 +653,14 @@ class CombatSystem:
     def calculate_attack_roll_bonus(self, ship):
         total_bonus = 0
         for weapon, count in ship.weapons.items():
-            total_bonus += data.weapons_list[weapon].damage_per_minute * count  # weapon.damage_per_minute * count
+            total_bonus += data.weapon_data[weapon]["Damage Per Minute"] * count  # weapon.damage_per_minute * count
         return total_bonus
 
     # Get attack damage of a ship from a random weapon it has
     def get_attack_damage(self, ship):
         damage = 0
         for weapon, count in ship.weapons.items():
-            damage += random.randint(1, data.weapons_list[weapon].damage_per_minute) * count
+            damage += random.randint(1, data.weapon_data[weapon]["Damage Per Minute"]) * count
         return damage
 
     def delay_with_dots(self, seconds):
@@ -535,8 +671,16 @@ class CombatSystem:
 	# The fight method in the CombatSystem class
 
     def fight(self):
+        enemy_qty = len(self.enemy_ships)
+        selected = input(util.msg("run_or_fight").format(enemy_qty=enemy_qty,is_are=("ship is" if enemy_qty == 1 else "ships are")))
         while self.player_ship.health > 0 and any(enemy_ship.health > 0 for enemy_ship in self.enemy_ships):
             for enemy_ship in self.enemy_ships:
+				# option to outrun
+                chance = random.randint(1,10)	# 1 in 10 chance of outrunning
+                if chance == 1 and selected.lower() == 'r':
+                    print(util.msg("outran_enemy_ships"))
+                    return
+		
                 if enemy_ship.health > 0:  # Ensure that enemy_ship can attack only if it is not destroyed
                     enemy_damage = self.get_attack_damage(enemy_ship)
                     print(f"Enemy ship {enemy_ship.name} deals {enemy_damage} damage! ")     # , end='')
@@ -548,42 +692,53 @@ class CombatSystem:
 
                 if enemy_ship.health > 0:  # Ensure that player_ship can attack only if the enemy_ship is not destroyed
                     player_damage = self.get_attack_damage(self.player_ship)
-                    print(f"Your ship {self.player_ship.name} deals {player_damage} damage to enemy ship {enemy_ship.name}! ")     # , end='')
+                    print(f"Your ship {self.player_ship.name} is dealing {player_damage} damage to enemy ship {enemy_ship.name}! ")     # , end='')
                     enemy_ship.take_damage(player_damage)
 		    
                     print(f"\nYour ship {self.player_ship.name}'s health is {self.player_ship.health}. ", end='')
                     print(f"Enemy ship {enemy_ship.name}'s health is {enemy_ship.health}.\n") if enemy_ship.health > 0 else print()	
+
         print()
         if self.player_ship.health > 0 and not any(enemy_ship.health > 0 for enemy_ship in self.enemy_ships):
             print(util.msg("enemy_defeated"))
-        # elif self.player_ship.health <= 0 and any(enemy_ship.health > 0 for enemy_ship in self.enemy_ships):
-            # print(util.msg("ship_destroyed"))
         else:
             print(util.msg("battle_draw"))
         return
 
     @staticmethod
-    def initialize_enemies():
-        enemy_ship = Ship(*Ship.init_ship("Vindelix", "light freighter", -1, -1))    # last two parameters at zero or below indicate NPC enemy ships
-        enemy_ship.attach_weapon( {"Pulse Cannon": 2, "Railgun": 2, "Plasma Blaster": 2, } )
-        enemy_ship_02 = Ship(*Ship.init_ship("Foobar", "stealth cruiser", -2, -2)); enemy_ship_02.attach_weapon( {"Pulse Cannon": 1, "Railgun": 1} )
-        enemy_ship_03 = Ship(*Ship.init_ship("Widowmaker", "orbital defense platform", -3, -3)); enemy_ship_03.attach_weapon( {"Pulse Cannon": 2, "Railgun": 2} )
-        enemy_ship_04 = Ship(*Ship.init_ship("Betelgeuse", "mining frigate", -4, -4)); enemy_ship_04.attach_weapon( {"Pulse Cannon": 1, "Railgun": 1} )
-        enemy_ship_05 = Ship(*Ship.init_ship("Bellerophon", "battlecruiser", -5, -5)); enemy_ship_05.attach_weapon( {"Pulse Cannon": 1, "Railgun": 2} )
+    def initialize_enemies(qty):
+        # compute relative health of player ship, to set matched enemy ship fleet health
+        '''
+		ship_names = []
+        ship_types = []
+        ship_weapons = []
+		'''
 
-        enemy_ships = [enemy_ship, enemy_ship_02, enemy_ship_03, enemy_ship_04, enemy_ship_05]
+        ship_names = Ship.random_ships_and_weapons(qty, "enemy")
+        ship_types = Ship.random_ships_and_weapons(qty, "ship_types")
+        ship_weapons = Ship.random_ships_and_weapons(qty, "weapon_types")
 	
-
-        for enemy in enemy_ships:
-            enemy.shields = 0
-
+        util.debug_checkpoint("ship_weapons[]", ship_weapons)	# TEST
+	
+        enemy_ships = []
+        for q in range(qty):
+			# __init__(self, name, ship_type, ship_class, cargo=500, weapon=100, passenger=1, owner=1, fleet=1):
+            enemy_ship = Ship(*Ship.init_ship(ship_names[q], ship_types[q], data.NUMBER_OF_PLAYERS+1, data.NUMBER_OF_PLAYERS+1))
+            for item in ship_weapons:
+                enemy_ship.attach_weapon({item: random.randint(1,data.RANDOM_SHIP_WEAPONS_MAX_PER)})
+            # for w in range(random.randint(1, data.RANDOM_SHIP_WEAPONS_MAX)):
+                # pass
+				# enemy_ship.attach_weapon( {"Pulse Cannon": 2, "Railgun": 1} )
+                # enemy_ship.attach_weapon( { ship_weapons[w]: random.randint(1,data.RANDOM_SHIP_WEAPONS_MAX_PER) } )
+            enemy_ship.shields = 0
+            enemy_ship.health = data.ENEMY_SHIP_HEALTH
+            enemy_ships.append(enemy_ship)
+    
         return enemy_ships
 
     @staticmethod
     def get_enemy_ships():
         return enemy_ships
-
-
 
 
 
@@ -594,7 +749,7 @@ class UISystem:
 			print(views.content["branding_title"])
 			player_name = input(lang.content["temp_enter_name"])
 			player_menu_select = input(views.content["select_main"]).lower()
-			print(util.msg("temp_print_selection".format(player_name=player_name, player_menu_select=player_menu_select)))
+			print(util.msg("temp_print_selection").format(player_name=player_name, player_menu_select=player_menu_select))
 		elif screen == "main":
 			player_menu_select = input(views.content["select_main"]).lower()
 		elif screen == "travel":
@@ -641,18 +796,37 @@ player_01.storage["Solstra"].receive_from_ship(sample_ship, "Railgun", 2)
 
 
 # initialize enemy ships
-enemy_ships = CombatSystem.initialize_enemies()
+qty_enemy = random.randint(1, int(sample_ship.health / 2000))
+enemy_ships = CombatSystem.initialize_enemies(qty_enemy)
 
 
 # trading marketplace
+'''
 mkt = TradingMarketplace(player_01, "Solstra")
 mkt.add_item("weapons", "Railgun", 58, 300)
 mkt.add_item("goods", "food_supplies", 100, 12)
 mkt.add_item("weapons", "Plasma Blaster", 50, 2500)
 mkt.sell_item("weapons", "Railgun", 1)
 mkt.buy_item("weapons", "Plasma Blaster", 3)
+'''
+
+# test
+time_passage = ArrivalRoutines()
+# sample_ship.health = 5000	# test
+sample_ship.cargo["contraband"] = 10
+# time_passage.police_raid(player_01, sample_ship)
+time_passage.standard_routines(player_01, sample_ship)
+
 
 TravelSystem.ship_travel(sample_ship)
+
+player_01.loan = 12000	# testing
+# player_01.balance = 1000	# testing
+testbank = Bank(player_01)	# self, player, location="Solstra"
+testbank.pay_loan(player_01)
+
+
+
 
 
 '''

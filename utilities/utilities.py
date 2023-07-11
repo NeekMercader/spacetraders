@@ -31,8 +31,6 @@ def format_table(textlist, header):
     return strfull
 
 
-
-
 # Define a function that displays the map as a text output
 def display_map():
     print(lang.content["label_header_map"])
@@ -41,3 +39,6 @@ def display_map():
         print(planet)
     print(lang.content["label_line_header_map"])
 
+
+def debug_checkpoint(msg, var=""):
+    print("###########", msg, "\n TEST CHECKPOINT = ", var, "\n#############\n\n\n")
