@@ -51,5 +51,57 @@ Command: """,
 
 Command: """,
 
+    "restart_screen" : """
+
+        'P' - Player Settings / Dashboard
+                - Player & Ship Info
+                - Configure
+        'X' - Exit
+        'M' - Messages from Bridge, Console
+
+        'M' - Marketplace (Trade > Buy, Sell, Inventory)
+        'S' - Storage (Warehouse / Transfer Cargo)
+        'B' - Bank (Visit, Deposit, Withdraw)
+        'Y' - Syndicate (Underground)
+        'R' - Repair & Maintenance
+
+        'T' - Travel
+
+
+Command: """,
+
+    "main_menu" : """
+
+[Menu]
+
+
+Command: """,
+
+
+
+
+### menus
+
+
+    "input_endscreen" : """
+
+    ===============
+    'R' - Restart
+    'X' - Exit
+    ===============
+    Make a selection: """,
+
 
 }
+
+
+
+# template:
+'''
+    "key" : """
+
+[value]
+
+Command: """,
+
+'''

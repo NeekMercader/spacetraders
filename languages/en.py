@@ -81,5 +81,8 @@ content = {
 
 	# ArrivalRoutines
 	"police_confiscation": "\n*** Global Police have found and confiscated your contraband! You were fined {fine}! Your available funds: {balance}. ***\n",
+    
+	# Sys
+	"exit_msg": "\n\n\n[The End]\n\nExiting...\nElvis has left the building.\n\n\n"
 
 }

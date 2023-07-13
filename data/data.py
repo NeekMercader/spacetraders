@@ -1,20 +1,26 @@
 ### constants
 
+# player
+PLAYER_STARTING_STORAGE = 50000
+PLAYER_STARTING_BALANCE = 5000  # cash / credits
+DEFAULT_ENEMY_SHIPS = 4 # max
+ENEMY_SHIP_HANDICAP = 2000
 
 # ship
 STD_SHIP_HEALTH = 10000
+STD_SHIP_SHIELDS = 1000
 ENEMY_SHIP_HEALTH = 2500
-REPAIR_PER_DAMAGE = 2	    # cost per unit damage multiplier
+REPAIR_PER_DAMAGE = 2	        # cost per unit damage multiplier
 NUMBER_OF_PLAYERS = 4
-RANDOM_SHIP_WEAPONS_MAX = 3 # randomize weapons in (usually enemy) ships
+RANDOM_SHIP_WEAPONS_MAX = 3     # randomize weapons in (usually enemy) ships
 RANDOM_SHIP_WEAPONS_MAX_PER = 2 # max quantity of units per item weapon
 
 # finance / bank / syndicate
-STD_INTEREST_RATE = 0.1     # (deposit) 10% interest per year (365 turns)
-STD_LOANABLE_AMT = 0.5      # Loan at 50% of net worth
+STD_INTEREST_RATE = 0.1         # (deposit) 10% interest per year (365 turns)
+STD_LOANABLE_AMT = 0.5          # Loan at 50% of net worth
 STD_LOAN_INTEREST_RATE = 0.15   # loan interest
-SYNDICATE_INTEREST_RATE = 1 # 100% interest per year (365 turns)
-SYNDICATE_LOANABLE_AMT = 5  # Loan at (up to) 500% of net worth
+SYNDICATE_INTEREST_RATE = 1     # 100% interest per year (365 turns)
+SYNDICATE_LOANABLE_AMT = 5      # Loan at (up to) 500% of net worth
 LOAN_SEVERITY_LEVEL = (1,2,3,4,5)   # similar to DEFCON, Richter, and (storm) Category
 
 # (name, ship_type, ship_class, cargo=500, weapon=100, passenger=1, owner=1, fleet=1)
@@ -219,20 +225,9 @@ distances = {
 
 # names of ships
 ship_names = [
-    "Bellerophon", "Pegasus", "Widowmaker", "Salamander", "Caesar", "Betelgeuse", "Tomorrow", "Storm", "Coriolis", "Vindelix", "Felix Legion", "Phoenix Legion", "Maximus", "Fulcrum", "Ganymede", "Orion's Buckle", "Farside", "Starlight Express",  "Serenity", "Falconia", "Excalibur", "Enterprise", "Defiant",  "Galactica", "Nebula's Pride", "Thunderchild", "Valkyrie", "Tempest",  "Phoenix", "Vipersword", "Nova's Hope", "Andromeda", "Eclipse",  "Shadowrunner", "Dragonfly", "Hyperion", "Stargazer", "Black Pearl",  "Orion's Fury", "Starfire", "Celestial Dawn", "Event Horizon", "Firefly",  "Quantum Serpent", "Nebula Star", "Intrepid", "Astral Voyager", "Nightshade",  "Solar Flare", "Zenith", "Nova's Glory", "Thunderhawk", "Infinity's Edge",  "Horizon's Reach", "Nebula Runner", "Starwind", "Hypernova", "Seraphim",  "Nova's Embrace", "Valkyrian Flux", "Nebula's Whisper", "Solaris",  "Eclipse Raider", "Thunderstrike", "Celestial Wanderer", "Orion's Legacy",  "Starblaze", "Spectre's Echo", "Stellar Phoenix", "Crimson Nova",  "Quantum Dreamer", "Aurora's Grace", "Nebula Drifter", "Voidbreaker",  "Starlancer", "Hyperion's Revenge", "Astral Eclipse", "Orion's Ascendancy",  "Nighthawk", "Liberator", "Zenith", "Vanguard", "Peregrine", "Aether", "Mirage",  "Galaxy's Crest", "Odyssey", "Avalanche", "Tempest", "Celestial Serenade",  "Quicksilver", "Etherea", "Thunderclass", "Solaria", "Nebula's Whisper",  "Stardust", "Radiant Ember", "Phoenix Bright", "Luminary Ascendant", "Silvershade",  "Nimbus", "Nova's Embrace", "Eternal Twilight", "Astrofire", "Stellarion",  "Astral Voyager", "Aurora", "Crimson Star", "Solara", "Eclipse's Edge",  "Moonshadow", "Lionheart", "Cosmic Solstice", "Sablefire", "Nebula's Grace",  "Voyager's Song", "Celestial Cascade", "Seraph", "Silverwing", "Nebula's Call",  "Midnight Serenade", "Novaflare", "Spectra", "Duskblade", "Starshaper",  "Zephyr", "Starwind", "Elysian Serenade", "Thunderheart", "Stellaria", "Aurora", "Lunaria", "Marvus", "Jovia", "Saturnia", "Phobiana",  "Deimosa", "Iona", "Europia", "Ganyria", "Callistia", "Titania", "Tritonia",  "Enceladia", "Mimara", "Tethia", "Diona", "Rheana", "Charona", "Solara",  "Astria", "Marvinus", "Saturnalia", "Uranusia", "Neptunia", "Lunaris Prime",  "Tritonia Major", "Enceladia Prime", "Mimarina", "Tethoria", "Dionaria",  "Rheanus", "Astralis", "Lunaris Minor", "Venaria", "Terranis", "Martis",  "Saturnus", "Urania", "Neptunis", "Marsalia", "Deimoria", "Ionus", "Ionara",  "Europion", "Ganymedea", "Callistea", "Titanara", "Tritonara", "Encelara",  "Tethara", "Dionara", "Rheanis", "Venusia", "Marcellus", "Jovea",  "Uranalia", "Neptunalia", "Lunarion", "Marsion", "Charonia", "Venusia",  "Marcellus",
+    "Bellerophon", "Pegasus", "Widowmaker", "Salamander", "Caesar", "Betelgeuse", "Tomorrow", "Storm", "Coriolis", "Vindelix", "Felix Legion", "Phoenix Legion", "Maximus", "Fulcrum", "Ganymede", "Orion's Buckle", "Farside", "Starlight Express", "Serenity", "Falconia", "Excalibur", "Enterprise", "Defiant", "Galactica", "Nebula's Pride", "Thunderchild", "Valkyrie", "Tempest", "Phoenix", "Vipersword", "Nova's Hope", "Andromeda", "Eclipse", "Shadowrunner", "Dragonfly", "Hyperion", "Stargazer", "Black Pearl", "Astraxis", "Celestion", "Colossa", "Constellus", "Eclipseon", "Eradicon", "Eternus", "Galaxon", "Infinion", "Interstellus", "Leviathus", "Magnia", "Nebulon", "Novacon", "Quantus", "Scourgion", "Singulon", "Solarion", "Spectron", "Stellion", "Stormius", "Supernovacon", "Tempestion", "Thundron", "Titanus", "Vengion", "Vortexium", "Warbringer", "Astradon", "Celestium", "Constellion", "Clysmicon", "Apocalypton", "Armageddus", "Ragnarox", "Thunderion", "Hyperionus", "Catalysmus", "Singularon", "Gravitron", "Cosmon", "Galaxio", "Infinitum", "Void Beast", "Spectral Leviathan", "Quantum Destroyer", "Nebulan", "Nova Tyrant", "Asterion", "Prometheon", "Tartaron", "Typhonus", "Zodiacion", "Pegasion", "Andromedon", "Centaurion", "Velorum", "Carinon", "Puppion", "Lupion", "Vulpes", "Columbon", "Aquilion", "Cetus", "Perseion", "Aurigon", "Ophion", "Sagittarion", "Geminion", "Taurion", "Libron", "Virgon", "Leonis", "Hydron", "Corvion", "Herculeon", "Cygnion", "Lacerton", "Arach", "Triangulum", "Indion", "Pavon", "Grus", "Tucanon", "Horologion", "Torion", "Hadaron", "Procyon", "Canopion", "Altairon", "Aldebaron", "Antares", "Polaris", "Deneb", "Vega", "Altair", "Rigel", "Castor", "Pollux", "Orion's Fury", "Starfire", "Celestial Dawn", "Event Horizon", "Firefly", "Quantum Serpent", "Nebula Star", "Intrepid", "Astral", "Nightshade", "Solar Flare", "Zenith", "Nova's Glory", "Thunderhawk", "Infinity's Edge", "Horizon's Reach", "Nebula Runner", "Starwind", "Hypernova", "Seraphim", "Nova's Embrace", "Valkyrian Flux", "Nebula's Whisper", "Solaris", "Eclipse Raider", "Thunderstrike", "Celestial Wanderer", "Orion's Legacy", "Starblaze", "Spectre's Echo", "Stellar Phoenix", "Crimson Nova", "Quantum Dreamer", "Aurora's Grace", "Nebula Drifter", "Voidbreaker", "Starlancer", "Hyperion's Revenge", "Astral Eclipse", "Orion's Ascendancy", "Nighthawk", "Liberator", "Vanguard", "Peregrine", "Aether", "Mirage", "Galaxy's Crest", "Odyssey", "Avalanche", "Quicksilver", "Etherea", "Thunderclass", "Solaria", "Stardust", "Radiant Ember", "Phoenix Bright", "Luminary Ascendant", "Silvershade", "Nimbus", "Eternal Twilight", "Astrofire", "Stellarion", "Astral Voyager", "Aurora", "Crimson Star", "Solara", "Eclipse's Edge", "Moonshadow", "Lionheart", "Sablefire", "Nebula's Grace", "Voyager's Song", "Celestialis", "Seraph", "Silverwing", "Nebula's Call", "Midnight Serenade", "Novaflare", "Spectra", "Duskblade", "Starshaper", "Zephyr", "Starwind", "Elysian Serenade", "Thunderheart", "Stellaria", "Lunaria", "Marvus", "Jovia", "Saturnia", "Phobiana", "Deimosa", "Iona", "Europia", "Ganyria", "Callistia", "Titania", "Tritonia", "Enceladia", "Mimara", "Tethia", "Diona", "Rheana", "Charona", "Solara", "Astria", "Marvinus", "Saturnalia", "Uranusia", "Neptunia", "Lunaris Prime", "Tritonia Major", "Enceladia Prime", "Mimarina", "Tethoria", "Dionaria", "Rheanus", "Astralis", "Lunaris Minor", "Venaria", "Terranis", "Martis", "Saturnus", "Urania", "Neptunis", "Marsalia", "Deimoria", "Ionus", "Ionara", "Europion", "Ganymedea", "Callistea", "Titanara", "Tritonara", "Encelara", "Tethara", "Dionara", "Rheanis", "Venusia", "Marcellus", "Jovea", "Uranalia", "Neptunalia", "Lunarion", "Marsion", "Charonia",
 ]
+
 enemy_ship_names = [
-    "Stardust", "Nebulon", "Lunaris", "Galacticon", "Quasar", "Warpstrider", "Cosmosis", "Starstruck", "Novaflare", "Cometstorm",
-    "Thunderstrike", "Celestial Fury", "Serendipity", "Zenith", "Supernoval", "Polaris", "Moonshadow", "Orion's Bane", "Starmonger",
-    "Warpshifter", "Solarflare", "Titan's Wrath", "Lunarchaser", "Hyperion", "Astral Serpent", "Meteoric Mayhem", "Infinity's End",
-    "Darklighter", "Starcutter", "Solstice", "Cosmic Crasher", "Blackstar", "Galaxus", "Thunderdusk", "Stardancer", "Quasarion",
-    "Nebula Vanguard", "Warpblade", "Celestialis", "Solar Sovereign", "Lunaris Rex", "Starwhisperer", "Hypernova", "Novastrider",
-    "Astroshock", "Stellar Eclipse", "Lunaticus", "Cometbane", "Cosmic Laughter", "Meteorion", "Stellarbane", "Nebulon Fury",
-    "Quasarshock", "Celestial Chaos", "Solarian", "Starcrusher", "Galactigor", "Celestial Storm", "Lunarstrike", "Supernovalanche",
-    "Worldbeater", "Stardustly", "Warpwalker", "Cosmosplitter", "Sunscorch", "Meteoric Mischief", "Quasarquake", "Nebulord",
-    "CelestialChomper", "Hypernova Rex", "Novaflare", "Starling", "Lunarloon", "Solarflarean", "Stardusty",
-    "Stellarus", "Celestiax", "Nebulaegis", "Galaxion", "Luminaris", "Astrophia", "Meteorix", "Starfire", "Orbitalis",
-    "Supernovus", "Solarion", "Cometrix", "Stellarian", "Lunarion", "Galaxium", "Astralia", "Nebulor", "Stardragon",
-    "Celeron", "Astrolynx", "Quasaris", "Aetherion", "Celestrex", "Stellarion", "Starlance", "Nebulus", "Cosmostrider",
-    "Solarflare", "Galactis", "Lunaveil", "Celestis", "Stargazer",
+    "Stardust", "Nebulon", "Lunaris", "Galacticon", "Quasar", "Warpstrider", "Cosmosis", "Starstruck", "Cometstorm", "Thunderstrike", "Celestial Fury", "Serendipity", "Zenith", "Supernoval", "Polaris", "Moonshadow", "Orion's Bane", "Starmonger", "Warpshifter", "Titan's Wrath", "Lunarchaser", "Meteoric Mayhem", "Infinity's End", "Darklighter", "Starcutter", "Solstice", "Cosmic Crasher", "Blackstar", "Galaxus", "Stardancer", "Quasarion", "Nebula Vanguard", "Warpblade", "Celestialis", "Solar Sovereign", "Lunaris Rex", "Starwhisperer", "Astroshock", "Stellar Eclipse", "Lunaticus", "Cometbane", "Cosmic Laughter", "Meteorion", "Stellarbane", "Nebulon Fury", "Quasarshock", "Celestial Chaos", "Solarian", "Starcrusher", "Galactigor", "Lunarstrike", "Worldbeater", "Warpwalker", "Cosmosplitter", "Sunscorch", "Meteoric Mischief", "Quasarquake", "Nebulord", "Starling", "Lunarloon", "Astrophia", "Orbitalis", "Cometrix", "Lunarion", "Astralia", "Nebulor", "Stardragon", "Celeron", "Astrolynx", "Quasaris", "Aetherion", "Stellarion", "Starlance", "Nebulus", "Cosmostrider", "Galactis", "Lunaveil", "Stargazer", "Voidwalker", "Starstriker", "Cosmic Tempest", "Neutron Star", "Singularity", "Event Horizon", "Supernova", "Galaxy Binder", "Constellation", "Helios", "Terminus", "Infinity", "Oblivion", "Elysium", "Cosmos", "Aurora", "Andromeda", "Cassiopeia", "Cepheus", "Perseus", "Hercules", "Orpheus", "Pegasus", "Odysseus", "Icarus", "Atlas", "Apollo", "Artemis", "Athena", "Ares", "Zeus", "Poseidon", "Hades", "Aether", "Erebus", "Elysium", "Tartarus", "Styx", "Charon", "Matterlock", "Glumpis", "Malagant",
 ]
