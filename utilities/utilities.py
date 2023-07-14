@@ -1,14 +1,13 @@
 import languages.en as lang
 import data.data as data
-
+import views.en as views
 
 # display message
 @staticmethod
-def msg(msg_id):
-    return lang.content[msg_id]
+def msg(msg_id, source="lang"):
+    return lang.content[msg_id] if source == "lang" else views.content[msg_id]
 
 
-#
 # format_table : create an ASCII-delimited table
 #   textlist: list of lists of content data (e.g. [["Arms",2,2,6],]) 
 #   header: list of table header labels (e.g. ["Inventory", "Qty", ...])
@@ -41,4 +40,4 @@ def display_map():
 
 
 def debug_checkpoint(msg, var=""):
-    print("###########", msg, "\n TEST CHECKPOINT = ", var, "\n#############\n\n\n")
+    print("\n###########", msg, "\n", var, "\nCHECKPOINT\n#############\n\n\n")

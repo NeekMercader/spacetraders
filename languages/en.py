@@ -80,9 +80,13 @@ content = {
     "run_or_fight": "Alert: Enemy ships! {enemy_qty} {is_are} mounting an attack! What do you wish to do?\n'F' - Stay and Fight\n'R' Attempt to Outrun\nChoose one: ",
 
 	# ArrivalRoutines
-	"police_confiscation": "\n*** Global Police have found and confiscated your contraband! You were fined {fine}! Your available funds: {balance}. ***\n",
+	"police_confiscation": "\n*** Oversector Police have found and confiscated your contraband! You were fined {fine}! Your available funds: {balance}. ***\n",
     
 	# Sys
 	"exit_msg": "\n\n\n[The End]\n\nExiting...\nElvis has left the building.\n\n\n"
 
+}
+
+commands = {
+    "exit": "exit",
 }

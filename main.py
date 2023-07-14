@@ -188,8 +188,10 @@ class Ship:
             print(util.msg("weapon_loaded").format(one=self.weapon_capacity,two=self.utilized_weapon_capacity,three=self.weapon_capacity-self.utilized_weapon_capacity,four=shipweapon,five=sum(shipweapon.values()),six=weapon_capacity))
         else:
             for item in shipweapon.keys():    # fit weapons individually
-                util.debug_checkpoint("ATTACH_WEAPON'S ITEM = "+item+"\nSHIPWEAPON = "+shipweapon+"SHIPWEAPON(KEYS) = "+shipweapon.keys()); exit();
-                weapon_capacity_single = self.compute_capacity(item, "weapons")
+                print("\n\n\n$$$$$$$$$$\nATTACH_WEAPON'S ITEM =", str(item), "\nSHIPWEAPON = ", str(shipweapon), "\nSHIPWEAPON(KEYS) = ", shipweapon.keys(), "\n\n\n")    # TEST
+                item_dict = {}
+                item_dict[item] = 1
+                weapon_capacity_single = self.compute_capacity(item_dict, "weapons")
                 if self.utilized_weapon_capacity + weapon_capacity_single >= 0:
                     self.weapons[item] = self.weapons.get(item, 0) + shipweapon[item]
                 else:
@@ -250,6 +252,7 @@ class Ship:
 
     def compute_capacity(self, itemlist, itemtype="goods"):            # itemlist = dict of goods (e.g. { "food" : 200, "arms" : 10 }) (if weapons, itemtype="weapons")
         capacity = 0
+        print("\n\n\n$$$$$$$$$$\nITEMLIST = ", str(itemlist), "\n$$$$$$$$$$\n\n\n\n")
         for item in itemlist.keys():
             capacity += (data.goods_data[item]["capacity used"] if itemtype == "goods" else data.weapon_data[item]["Capacity Used"] )     # * itemlist[item]
         return capacity
@@ -643,33 +646,34 @@ class TravelSystem:
         self.ship = ship
 
     def ship_travel(self):
-        selection = TravelSystem.expand_selection(UISystem.ui_screens("travel"))    # departure
+        selection = TravelSystem.expand_selection(Game.ui_screens("travel"))    # departure
         print(f"Traveling to {selection}...\n")
 
         # time.sleep(1)
-        EventSystem()
+        EventSystem(self)
         # time.sleep(1)
 
         
         print(f"Arriving in {selection}...\n")
         self.set_curr_location(selection)        # set ship location; later, fleet can have different locations
         self.player.curr_location = selection    # player location; fleet ships can be scattered in diff locations
-        # selection = TravelSystem.expand_selection(UISystem.ui_screens("main"))        # arrival
+        # selection = TravelSystem.expand_selection(Game.ui_screens("main"))        # arrival
 
 
 
 class EventSystem:
-    def __init__(self):
+    def __init__(self, ship):
         # self.ship = ship    # Ship instance
         
-        event = data.eventlist[random.randint(1, len(data.eventlist) - 1)]
+        event = data.eventlist[random.randint(1, len(data.eventlist) - 1)]  # could also be: event = random.choice(data.eventlist)
+        
         print("\n\n\n\n\n#################################")
         print(f"\nInside EventSystem, current event is {event}.\n")
         print("#################################\n\n\n\n\n")
 
         # enemy_ships = CombatSystem.get_enemy_ships()
         enemy_ships = CombatSystem.initialize_enemies()
-        combat_01 = CombatSystem(self, enemy_ships)    # sample_ship
+        combat_01 = CombatSystem(ship, enemy_ships)    # sample_ship
         combat_01.fight()
         '''
         if event == "nothing":
@@ -741,7 +745,7 @@ class CombatSystem:
 
                 if self.player_ship.health <= 0:  # Check after each attack if the player ship's health is zero
                     print(util.msg("ship_destroyed"))
-                    Game.endscreen()
+                    # Game.endscreen()
                     return  # Exit the function as soon as player's health reaches zero
 
                 if enemy_ship.health > 0:  # Ensure that player_ship can attack only if the enemy_ship is not destroyed
@@ -757,15 +761,16 @@ class CombatSystem:
             print(util.msg("enemy_defeated"))
         else:
             print(util.msg("battle_draw"))
+        # Game.endscreen()
         return
 
     @staticmethod
     def initialize_enemies(mode="random", ship_qty=0, player_ship_health=data.STD_SHIP_HEALTH):    # modes: default / random / specific qty
-        if ship_qty > 0:	# specific qty
+        if ship_qty > 0:    # specific qty
             qty = ship_qty
-        elif mode == "default":		
+        elif mode == "default":        
             qty = data.DEFAULT_ENEMY_SHIPS
-        else:	# mode: random
+        else:    # mode: random
             qty = random.randint(1, int(player_ship_health / data.ENEMY_SHIP_HANDICAP)) # base it on player ship as advantage for playability
         # compute relative health of player ship, to set matched enemy ship fleet health
         # qty = ship_qty if ship_qty > 0 else random.randint(1, int(self.player_ship.health / 2000))
@@ -774,7 +779,7 @@ class CombatSystem:
         ship_types = Ship.random_ships_and_weapons(qty, "ship_types")
         ship_weapons = Ship.random_ships_and_weapons(qty, "weapon_types")    # important: check if qty matches ship capacity
     
-        util.debug_checkpoint("ship_weapons[]", ship_weapons)    # TEST
+        # util.debug_checkpoint("ship_weapons[]", ship_weapons)    # TEST
     
         enemy_ships = []
         for q in range(qty):
@@ -788,8 +793,10 @@ class CombatSystem:
         return enemy_ships
 
 
+class Game:
+    def __init__():
+        pass
 
-class UISystem:
     @staticmethod
     def ui_screens(screen="start"):
         if screen == "start":
@@ -802,99 +809,91 @@ class UISystem:
         elif screen == "travel":
             player_menu_select = input(views.content["select_travel"]).lower()
         return player_menu_select
-
-
-class Game:
-    def __init__():
-        pass
+    
+    @staticmethod
+    def endscreen():
+        choice = input(util.msg("input_endscreen", "view")).lower()
+        if choice == 'x':    # choice 'x' (or anything else)
+            print(util.msg("exit_msg"))
+        return choice       
 
     @staticmethod
     def play_game():
 
-        # initialize player
-        player_01 = Player()    # player_id=1, player_username="SirLootALot", initial_balance=0)
+        player_menu_select = Game.ui_screens()   # start the game
 
-        player_01.add_to_playerlist()
+        while (player_menu_select != 'x') and (player_menu_select != lang.commands["exit"]): # to exit, user can press 'x' or type 'exit'
+            
+            # initialize player
+            player_01 = Player()    # player_id=1, player_username="SirLootALot", initial_balance=0)
 
-        player_01.storage.update( {"Solstra": Storage("Solstra", data.PLAYER_STARTING_STORAGE)} )    # test only; can be instantiated by other means
-        player_01.balance = data.PLAYER_STARTING_BALANCE
-        player_01.storage["Solstra"].add_item("Pulse Cannon",5)    # later "Solstra" changed to curr_loc
-        player_01.storage["Solstra"].add_item("Railgun",7)
-        player_01.storage["Solstra"].remove_item("Pulse Cannon",2)
-        player_01.storage["Solstra"].add_item("Graviton Beam",2)
+            player_01.add_to_playerlist()
 
-        # init_ship converts strings to fully-formed list for Ship object declaration
-        sample_ship = Ship(*Ship.init_ship("Prometheus", "light freighter"))
-        sample_ship.load_cargo( {"arms": 2, "gadgets": 5, "minerals": 2} )
-        sample_ship.load_cargo( {"food_supplies": 10, "gadgets": 9 } )
-        sample_ship.load_cargo( {"arms": 10, "raw_materials": 5, "minerals": 5} )
-        sample_ship.remove_cargo( {"raw_materials": 3, "arms": 2} )
-        sample_ship.remove_cargo( {"minerals": 5, "arms": 5, "gadgets": 6} )
-        sample_ship.load_cargo( {"raw_materials": 5, "arms": 5} )
+            player_01.storage.update( {"Solstra": Storage("Solstra", data.PLAYER_STARTING_STORAGE)} )    # test only; can be instantiated by other means
+            player_01.balance = data.PLAYER_STARTING_BALANCE
+            player_01.storage["Solstra"].add_item("Pulse Cannon",5)    # later "Solstra" changed to curr_loc
+            player_01.storage["Solstra"].add_item("Railgun",7)
+            player_01.storage["Solstra"].remove_item("Pulse Cannon",2)
+            player_01.storage["Solstra"].add_item("Graviton Beam",2)
 
-        sample_ship.attach_weapon( {"Pulse Cannon": 2, "Railgun": 1} )
-        sample_ship.attach_weapon( {"Plasma Blaster": 2, "Railgun": 1} )
-        sample_ship.remove_weapon( {"Pulse Cannon": 1, "Plasma Blaster": 1})
+            # init_ship converts strings to fully-formed list for Ship object declaration
+            sample_ship = Ship(*Ship.init_ship("Prometheus", "light freighter"))
+            sample_ship.load_cargo( {"arms": 2, "gadgets": 5, "minerals": 2} )
+            sample_ship.load_cargo( {"food_supplies": 10, "gadgets": 9 } )
+            sample_ship.load_cargo( {"arms": 10, "raw_materials": 5, "minerals": 5} )
+            sample_ship.remove_cargo( {"raw_materials": 3, "arms": 2} )
+            sample_ship.remove_cargo( {"minerals": 5, "arms": 5, "gadgets": 6} )
+            sample_ship.load_cargo( {"raw_materials": 5, "arms": 5} )
 
-        # transfer weapons between ship and storage
-        player_01.storage["Solstra"].transfer_to_ship(sample_ship, "Railgun", 3)
-        player_01.storage["Solstra"].receive_from_ship(sample_ship, "Railgun", 2)
+            sample_ship.attach_weapon( {"Pulse Cannon": 2, "Railgun": 1} )
+            sample_ship.attach_weapon( {"Plasma Blaster": 2, "Railgun": 1} )
+            sample_ship.remove_weapon( {"Pulse Cannon": 1, "Plasma Blaster": 1})
 
-        # initialize enemy ships
-        
-        # enemy_ships = CombatSystem.initialize_enemies(qty_enemy)
+            # transfer weapons between ship and storage
+            player_01.storage["Solstra"].transfer_to_ship(sample_ship, "Railgun", 3)
+            player_01.storage["Solstra"].receive_from_ship(sample_ship, "Railgun", 2)
 
-        # test
-        time_passage = ArrivalRoutines()
-        # sample_ship.health = 5000    # test
-        sample_ship.cargo["contraband"] = 10
-        # time_passage.police_raid(player_01, sample_ship)
-        time_passage.standard_routines(player_01, sample_ship)
+            # test
+            time_passage = ArrivalRoutines()
+            # sample_ship.health = 5000    # test
+            sample_ship.cargo["contraband"] = 10
+            # time_passage.police_raid(player_01, sample_ship)
+            time_passage.standard_routines(player_01, sample_ship)
 
-        TravelSystem.ship_travel(sample_ship)
+            TravelSystem.ship_travel(sample_ship)
 
-        player_01.loan = 12000    # testing
-        # player_01.balance = 1000    # testing
-        testbank = Bank(player_01)    # self, player, location="Solstra"
-        testbank.pay_loan(player_01)
+            player_01.loan = 12000    # testing
+            # player_01.balance = 1000    # testing
+            testbank = Bank(player_01)    # self, player, location="Solstra"
+            testbank.pay_loan(player_01)
 
+            '''
+            # trading marketplace
 
-        '''
+            mkt = TradingMarketplace(player_01, "Solstra")
+            mkt.add_item("weapons", "Railgun", 58, 300)
+            mkt.add_item("goods", "food_supplies", 100, 12)
+            mkt.add_item("weapons", "Plasma Blaster", 50, 2500)
+            mkt.sell_item("weapons", "Railgun", 1)
+            mkt.buy_item("weapons", "Plasma Blaster", 3)
 
-        # trading marketplace
+            sell_item(self, item_type, item_id, qty):
 
-        mkt = TradingMarketplace(player_01, "Solstra")
-        mkt.add_item("weapons", "Railgun", 58, 300)
-        mkt.add_item("goods", "food_supplies", 100, 12)
-        mkt.add_item("weapons", "Plasma Blaster", 50, 2500)
-        mkt.sell_item("weapons", "Railgun", 1)
-        mkt.buy_item("weapons", "Plasma Blaster", 3)
+            sample_storage = Storage("Solstra", 50000)
+            sample_storage.add_item("Pulse Cannon",5)
+            sample_storage.add_item("Railgun",7)
+            sample_storage.remove_item("Pulse Cannon",2)
+            sample_storage.add_item("Graviton Beam",2)
+            sample_storage.transfer_to_ship(sample_ship, "Railgun", 3)
+            sample_storage.receive_from_ship(sample_ship, "Railgun", 2)
 
-        sell_item(self, item_type, item_id, qty):
+            print("Here's the results from the game: \n", sample_ship)
 
-        sample_storage = Storage("Solstra", 50000)
-        sample_storage.add_item("Pulse Cannon",5)
-        sample_storage.add_item("Railgun",7)
-        sample_storage.remove_item("Pulse Cannon",2)
-        sample_storage.add_item("Graviton Beam",2)
-        sample_storage.transfer_to_ship(sample_ship, "Railgun", 3)
-        sample_storage.receive_from_ship(sample_ship, "Railgun", 2)
+            util.display_map()
 
-        print("Here's the results from the game: \n", sample_ship)
-
-        util.display_map()
-
-        '''
-
-    @staticmethod
-    def endscreen():
-        choice = input("input_endscreen").lower()
-        if choice == 'x':    # choice 'x' (or anything else)
-            print(util.msg("exit_msg"))
-        else:
-            # os.execl(sys.executable, sys.executable, *sys.argv)
-            Game.play_game()
-        return        
+            '''
+            util.debug_checkpoint("Last player_menu_select")
+            player_menu_select = Game.endscreen()
 
 
 
