@@ -141,6 +141,8 @@ class Ship:
         self.cargo = {}
         self.weapons = {}
 
+        
+
     def __repr__(self):
         return util.msg("repr_ship").format(name=self.name, ship_type=self.ship_type, ship_class = self.ship_class, passenger_capacity = self.passenger_capacity, cargo_capacity = self.utilized_cargo_capacity, weapons_capacity = self.utilized_weapon_capacity, cargo = self.cargo, weapons = self.weapons)
 
@@ -179,25 +181,25 @@ class Ship:
         if show_stats == True: print(self.show_cargo_stats())        # .show_cargo_stats(self.cargo))
         return True
     
-    def attach_weapon(self, shipweapon):    # shipweapon = dict (e.g. { "Pulse Cannon" : 2, "Railgun" : 1 })
+    def attach_weapon(self, shipweapon, suppress_msg = False):    # shipweapon = dict (e.g. { "Pulse Cannon" : 2, "Railgun" : 1 })
         weapon_capacity = self.compute_capacity(shipweapon, "weapons")
         if self.weapon_capacity >= self.utilized_weapon_capacity + weapon_capacity:
             self.utilized_weapon_capacity += weapon_capacity
             for item in shipweapon.keys():
                 self.weapons[item] = self.weapons.get(item, 0) + shipweapon[item]    # qty, not capacity
-            print(util.msg("weapon_loaded").format(one=self.weapon_capacity,two=self.utilized_weapon_capacity,three=self.weapon_capacity-self.utilized_weapon_capacity,four=shipweapon,five=sum(shipweapon.values()),six=weapon_capacity))
+            if (suppress_msg == False): print(util.msg("weapon_loaded").format(one=self.weapon_capacity,two=self.utilized_weapon_capacity,three=self.weapon_capacity-self.utilized_weapon_capacity,four=shipweapon,five=sum(shipweapon.values()),six=weapon_capacity))
         else:
             for item in shipweapon.keys():    # fit weapons individually
-                print("\n\n\n$$$$$$$$$$\nATTACH_WEAPON'S ITEM =", str(item), "\nSHIPWEAPON = ", str(shipweapon), "\nSHIPWEAPON(KEYS) = ", shipweapon.keys(), "\n\n\n")    # TEST
+                # print("\n\n\n$$$$$$$$$$\nATTACH_WEAPON'S ITEM =", str(item), "\nSHIPWEAPON = ", str(shipweapon), "\nSHIPWEAPON(KEYS) = ", shipweapon.keys(), "\n\n\n")    # TEST
                 item_dict = {}
                 item_dict[item] = 1
                 weapon_capacity_single = self.compute_capacity(item_dict, "weapons")
                 if self.utilized_weapon_capacity + weapon_capacity_single >= 0:
                     self.weapons[item] = self.weapons.get(item, 0) + shipweapon[item]
                 else:
-                    print(util.msg("weapon_not_loaded"))
+                    if (suppress_msg == False): print(util.msg("weapon_not_loaded"))
                     return False
-        print(self.show_weapon_stats(self.weapons))
+        if (suppress_msg == False): print(self.show_weapon_stats(self.weapons))
         return True
     
     '''
@@ -252,7 +254,7 @@ class Ship:
 
     def compute_capacity(self, itemlist, itemtype="goods"):            # itemlist = dict of goods (e.g. { "food" : 200, "arms" : 10 }) (if weapons, itemtype="weapons")
         capacity = 0
-        print("\n\n\n$$$$$$$$$$\nITEMLIST = ", str(itemlist), "\n$$$$$$$$$$\n\n\n\n")
+        # print("\n\n\n$$$$$$$$$$\nITEMLIST = ", str(itemlist), "\n$$$$$$$$$$\n\n\n\n")
         for item in itemlist.keys():
             capacity += (data.goods_data[item]["capacity used"] if itemtype == "goods" else data.weapon_data[item]["Capacity Used"] )     # * itemlist[item]
         return capacity
@@ -473,7 +475,7 @@ class ArrivalRoutines:    # note: call standard_routines()
     # police_raid
     def police_raid(self, player, ship):
         if "contraband" in ship.cargo:
-            if 1: # if (random.randint(1, 5) == 1):        # 20% odds, 1 in 5
+            if (random.randint(1, 5) == 1):        # 20% odds, 1 in 5
                 fine = ship.cargo["contraband"] * (player.balance * 0.05)     # fine = contraband * (5% of cash balance)
                 del ship.cargo["contraband"]
                 player.balance -= int(fine)
@@ -653,11 +655,11 @@ class TravelSystem:
         EventSystem(self)
         # time.sleep(1)
 
-        
-        print(f"Arriving in {selection}...\n")
-        self.set_curr_location(selection)        # set ship location; later, fleet can have different locations
-        self.player.curr_location = selection    # player location; fleet ships can be scattered in diff locations
-        # selection = TravelSystem.expand_selection(Game.ui_screens("main"))        # arrival
+        if (self.health > 0):
+            print(f"Arriving in {selection}...\n")
+            self.set_curr_location(selection)        # set ship location; later, fleet can have different locations
+            self.player.curr_location = selection    # player location; fleet ships can be scattered in diff locations
+            # selection = TravelSystem.expand_selection(Game.ui_screens("main"))        # arrival
 
 
 
@@ -675,6 +677,7 @@ class EventSystem:
         enemy_ships = CombatSystem.initialize_enemies()
         combat_01 = CombatSystem(ship, enemy_ships)    # sample_ship
         combat_01.fight()
+
         '''
         if event == "nothing":
             pass
@@ -785,7 +788,7 @@ class CombatSystem:
         for q in range(qty):
             enemy_ship = Ship(*Ship.init_ship(ship_names[q], ship_types[q], data.NUMBER_OF_PLAYERS+1, data.NUMBER_OF_PLAYERS+1))
             for item in ship_weapons:
-                enemy_ship.attach_weapon({item: random.randint(1,data.RANDOM_SHIP_WEAPONS_MAX_PER)})
+                enemy_ship.attach_weapon({item: random.randint(1,data.RANDOM_SHIP_WEAPONS_MAX_PER)}, True)  # suppress_msg arg == True
             enemy_ship.shields = 0
             enemy_ship.health = data.ENEMY_SHIP_HEALTH
         
@@ -818,40 +821,49 @@ class Game:
         return choice       
 
     @staticmethod
+    def initialize_game(player_01, sample_ship):
+            player_01.storage.update( {"Solstra": Storage("Solstra", data.PLAYER_STARTING_STORAGE)} )    # test only; can be instantiated by other means
+            player_01.balance = data.PLAYER_STARTING_BALANCE
+            player_01.storage["Solstra"].add_item("Pulse Cannon",5)    # later "Solstra" changed to curr_loc
+            player_01.storage["Solstra"].add_item("Railgun",7)
+            # player_01.storage["Solstra"].remove_item("Pulse Cannon",2)
+            player_01.storage["Solstra"].add_item("Graviton Beam",2)
+
+            # init_ship converts strings to fully-formed list for Ship object declaration
+            
+            sample_ship.load_cargo( {"arms": 2, "gadgets": 5, "minerals": 2} )
+            sample_ship.load_cargo( {"food_supplies": 10, "gadgets": 9 } )
+            sample_ship.load_cargo( {"arms": 10, "raw_materials": 5, "minerals": 5} )
+            # sample_ship.remove_cargo( {"raw_materials": 3, "arms": 2} )
+            # sample_ship.remove_cargo( {"minerals": 5, "arms": 5, "gadgets": 6} )
+            sample_ship.load_cargo( {"raw_materials": 5, "arms": 5} )
+
+            sample_ship.attach_weapon( {"Pulse Cannon": 2, "Railgun": 1} )
+            sample_ship.attach_weapon( {"Plasma Blaster": 2, "Railgun": 1} )
+            # sample_ship.remove_weapon( {"Pulse Cannon": 1, "Plasma Blaster": 1})
+
+            # transfer weapons between ship and storage
+            player_01.storage["Solstra"].transfer_to_ship(sample_ship, "Railgun", 3)
+            player_01.storage["Solstra"].receive_from_ship(sample_ship, "Railgun", 2)
+
+    @staticmethod
     def play_game():
 
         player_menu_select = Game.ui_screens()   # start the game
 
         while (player_menu_select != 'x') and (player_menu_select != lang.commands["exit"]): # to exit, user can press 'x' or type 'exit'
             
-            # initialize player
+            ### Initialize
+
+            # initialize player and ship
             player_01 = Player()    # player_id=1, player_username="SirLootALot", initial_balance=0)
-
             player_01.add_to_playerlist()
-
-            player_01.storage.update( {"Solstra": Storage("Solstra", data.PLAYER_STARTING_STORAGE)} )    # test only; can be instantiated by other means
-            player_01.balance = data.PLAYER_STARTING_BALANCE
-            player_01.storage["Solstra"].add_item("Pulse Cannon",5)    # later "Solstra" changed to curr_loc
-            player_01.storage["Solstra"].add_item("Railgun",7)
-            player_01.storage["Solstra"].remove_item("Pulse Cannon",2)
-            player_01.storage["Solstra"].add_item("Graviton Beam",2)
-
-            # init_ship converts strings to fully-formed list for Ship object declaration
             sample_ship = Ship(*Ship.init_ship("Prometheus", "light freighter"))
-            sample_ship.load_cargo( {"arms": 2, "gadgets": 5, "minerals": 2} )
-            sample_ship.load_cargo( {"food_supplies": 10, "gadgets": 9 } )
-            sample_ship.load_cargo( {"arms": 10, "raw_materials": 5, "minerals": 5} )
-            sample_ship.remove_cargo( {"raw_materials": 3, "arms": 2} )
-            sample_ship.remove_cargo( {"minerals": 5, "arms": 5, "gadgets": 6} )
-            sample_ship.load_cargo( {"raw_materials": 5, "arms": 5} )
 
-            sample_ship.attach_weapon( {"Pulse Cannon": 2, "Railgun": 1} )
-            sample_ship.attach_weapon( {"Plasma Blaster": 2, "Railgun": 1} )
-            sample_ship.remove_weapon( {"Pulse Cannon": 1, "Plasma Blaster": 1})
+            print(util.msg("initializing"))
+            Game.initialize_game(player_01, sample_ship)
+            
 
-            # transfer weapons between ship and storage
-            player_01.storage["Solstra"].transfer_to_ship(sample_ship, "Railgun", 3)
-            player_01.storage["Solstra"].receive_from_ship(sample_ship, "Railgun", 2)
 
             # test
             time_passage = ArrivalRoutines()
@@ -862,10 +874,11 @@ class Game:
 
             TravelSystem.ship_travel(sample_ship)
 
-            player_01.loan = 12000    # testing
-            # player_01.balance = 1000    # testing
-            testbank = Bank(player_01)    # self, player, location="Solstra"
-            testbank.pay_loan(player_01)
+            if (sample_ship.health > 0):    # otherwise, just exit to endscreen
+                player_01.loan = data.PLAYER_STARTING_BALANCE    # testing; balance is from debt
+                # player_01.balance = 1000    # testing
+                testbank = Bank(player_01)    # self, player, location="Solstra"
+                testbank.pay_loan(player_01)
 
             '''
             # trading marketplace
@@ -892,7 +905,9 @@ class Game:
             util.display_map()
 
             '''
-            util.debug_checkpoint("Last player_menu_select")
+
+            ### Start 
+
             player_menu_select = Game.endscreen()
 
 

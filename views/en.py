@@ -15,58 +15,47 @@ By Neek Mercader
 ,
     "select_main" : """
 
-+-------------------------------------------+------------------------------------------+
-| Type your command:                        |                                          |
-+-------------------------------------------+------------------------------------------+
-| Ship - Entry:                             | Trade:                                   |
-| 'N' or 'enter' to board your ship         | 'B' or 'buy' to purchase goods (cargo)   |
-| 'E' or 'exit' to disembark from your ship | 'S' or 'sell' to sell goods (cargo)      |
-|                                           |                                          |
-| Ship - Navigation:                        | Explore, Rest, and Relaxation:           |
-| 'D' or 'dock' to land (planet, port)      | 'V' or 'visit' a bar; gather information |
-| 'T' or 'travel' to leave to a destination |                                          |
-| 'M' or 'map' to display map (menu)        | Game:                                    |
-|                                           | 'Q' or 'quit' to exit                    |
-| Ship - Cargo:                             |                                          |
-| 'L' or 'load' cargo                       | +-------------------------------------+  |
-| 'U' or 'unload' cargo                     | Stats:                                   |
-| 'I' or 'inventory' (list) of cargo        | -----                                    |
-|                                           | Credits: 255,498                         |
-| Ship - Weapons:                           | Ship Health: 100%                        |
-| 'F' or 'fire' to shoot at opponents       | Weapons Health:                          |
-| 'A' or 'attach' to install weapons        |      100% (12 slots used of 25 capacity) |
-| 'R' or 'remove' to detach weapons         | Cargo Capacity:                          |
-| 'W' or 'weapons' listing                  |      2500 of 5000 (2500 available)       |
-+-------------------------------------------+------------------------------------------+
++---------------------------------------------------------------------------------------+
+| Type your command:                                                                    |
++---------------------------------------------+-----------------------------------------+
+|                                             |                                         |
+| 'S' - Enter Ship:                           | 'P' - Player Settings / Dashboard       |
+|     'W' - Weapons: Attach / Detach          |     'I' - Player & Ship Info            |
+|     'T' - Travel                            |     'C' - Configure                     |
+| 'W' - Storage (Transfer Cargo):             | 'I' - Gather Intel (Visit a Bar / Club) |
+|     'W' - Move Goods from Warehouse to Ship | 'X' - Exit                              |
+|     'S' - Move Goods from Ship to Warehouse |                                         |
+| 'M' - Marketplace (Trade):                  |                                         |
+|     'B' - Buy                               |                                         |
+|     'S' - Sell                              |                                         |
+|     'I' - Show Inventory                    |                                         |
+| 'B' - Bank (Visit, Deposit, Withdraw):      +-----------------------------------------+
+|     'D' - Deposit                           | Stats:                                  |
+|     'W' - Withdraw                          +-----------------------------------------+
+|     'B' - Make a Loan / Borrow              | Credits: 255,498    |   Bank: 243.85M   |
+|     'P' - Pay Loan                          | Ship Health: 100%   |   Shields: 100    |
+| 'Y' - Syndicate (Underground):              | Weapons Health:                         |
+|     'B' - Make a Loan / Borrow              |     100% (12 slots used of 25 capacity) |
+|     'P' - Pay Loan                          | Cargo Capacity:                         |
+| 'R' - Maintenance & Repair                  |     2500 of 5000 (2500 available)       |
+|                                             |                                         |
++---------------------------------------------+-----------------------------------------+
 
 Command: """,
 
     "select_travel" : """
 
-+-------------------------------------------+------------------------------------------+
-| Enter your destination:                   |                                          |
-+-------------------------------------------+------------------------------------------+
-  '1' = Solstice (DEBUG: Enter based off dynamic destination list)
-+-------------------------------------------+------------------------------------------+
-
-Command: """,
-
-    "restart_screen" : """
-
-        'P' - Player Settings / Dashboard
-                - Player & Ship Info
-                - Configure
-        'X' - Exit
-        'M' - Messages from Bridge, Console
-
-        'M' - Marketplace (Trade > Buy, Sell, Inventory)
-        'S' - Storage (Warehouse / Transfer Cargo)
-        'B' - Bank (Visit, Deposit, Withdraw)
-        'Y' - Syndicate (Underground)
-        'R' - Repair & Maintenance
-
-        'T' - Travel
-
++---------------------------------+--------------------------------+
+| Enter your destination:         |                                |
++---------------------------------+--------------------------------+
+  '1' = Solstra (DEBUG: Enter based off dynamic destination list)
+  '2' = Pulsarion
+  '3' = Caelus Prime
+  '4' = Draconis
+  '5' = Lunaria
+  '6' = Stellaria
+  '7' = Galaxion
++---------------------------------+--------------------------------+
 
 Command: """,
 
