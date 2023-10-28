@@ -13,6 +13,10 @@ import views.en as views
 import data.data as data
 import utilities.utilities as util
 
+# logging
+import logging
+logging.basicConfig(filename='trade_history.log', level=logging.INFO)
+
 
 '''
 
@@ -84,6 +88,8 @@ class Player:
         self.reputation = 0
         self.storage = {}    # dict of Storage instances based on location; e.g. { "Solstra": Storage("Solstra", 50000), }
 
+        self.trade_history = []
+
     # Check if player has sufficient balance for a given amount
     def check_balance(self, amount):
         return self.balance >= amount
@@ -102,7 +108,9 @@ class Player:
     def add_to_playerlist(self):
         self.__class__.player_list.append(self)        # Player.player_list.append(self)
 
-
+    def add_to_trade_history(self, action, item_id, qty, price):
+        self.trade_history.append({ 'action': action, 'item_id': item_id, 'qty': qty, 'price': price })
+        
 
 class Ship:
     @staticmethod
@@ -570,7 +578,9 @@ class TradingMarketplace:
     def buy_item(self, item_type, item_id, qty):
         item_dict = self.get_item_dict(item_type)
         if item_id in item_dict and item_dict[item_id]['qty'] >= qty:
-            cost = item_dict[item_id]['price'] * qty
+            # cost = item_dict[item_id]['price'] * qty
+            cost = self.dynamic_pricing(item_type, item_id) * qty
+
             if self.player.check_balance(cost):
                 item_dict[item_id]['qty'] -= qty
                 self.player.remove_balance(cost)
@@ -579,6 +589,9 @@ class TradingMarketplace:
                 print (f"Insufficient funds to buy {qty} units of item {item_id}.")
         else:
             print (f"Insufficient qty or item does not exist: {qty} units of item {item_id}.")
+        # logging and trade history
+        logging.info(f"Player bought {qty} units of {item_id} for {cost} credits.")
+        self.player.add_to_trade_history('buy', item_id, qty, cost)
 
     # Sell an item to the marketplace
     def sell_item(self, item_type, item_id, qty):
@@ -593,6 +606,9 @@ class TradingMarketplace:
                 item_dict[item_id] = {'qty': qty, 'price': self.player.get_item_price(item_type, item_id)}
         else:
             print (f"Insufficient qty to sell {qty} units of item {item_id}.")
+        # logging and trade history
+        logging.info(f"Player sold {qty} units of {item_id} for {item_dict[item_id]['price']} credits (and earning {earnings} credits.")
+        self.player.add_to_trade_history('sell', item_id, qty, item_dict[item_id]['price'])
 
     # Load an item to the marketplace
     def add_item(self, item_type, item_id, qty, price):
@@ -615,6 +631,22 @@ class TradingMarketplace:
     def get_item_price(self, item_type, item_id):
         item_dict = self.get_item_dict(item_type)
         return item_dict[item_id]['price'] if item_id in item_dict else 0
+
+    # Adjust price based on quantity
+    def dynamic_pricing(self, item_type, item_id):
+        item_dict = self.get_item_dict(item_type)
+        adjusted_price = 0
+        if item_id in item_dict:
+            base_price = item_dict[item_id]['base_price']
+            current_qty = item_dict[item_id]['qty']
+            if current_qty < 10:
+                adjusted_price = base_price * 1.5  # Increase price by 50% if qty is less than 10
+            elif current_qty < 50:
+                adjusted_price = base_price * 1.2  # Increase price by 20% if qty is less than 50
+            else:
+                adjusted_price = base_price
+        return adjusted_price
+
 
 
 class Maintenance:
