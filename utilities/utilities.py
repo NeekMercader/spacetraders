@@ -40,4 +40,22 @@ def display_map():
 
 
 def debug_checkpoint(msg, var=""):
-    print("\n###########", msg, "\n", var, "\nCHECKPOINT\n#############\n\n\n")
+    print("\n########### CHECKPOINT: ", msg, "\n", var, "\n#############\n\n")
+
+def print_obj_sans_extra(msg, obj):   # print contents of object without the fluff
+    print("\n########## PRINT OBJ (without extraneous): ", msg, "\n")
+    if isinstance(obj, (list, range)):
+        for key, value in enumerate(obj):
+            print(f"{key}: {value}")
+    elif isinstance(obj, dict):         # handle dictionaries
+        for key, value in obj.items():
+            print(f"{key}: {value}")
+            if hasattr(value, '__dict__'):
+                # if a dict value is an object with attributes, print its attributes
+                for inner_key, inner_value in vars(value).items():
+                    if not inner_key.startswith('__') and not callable(inner_value):
+                        print(f"  {inner_key}: {inner_value}")
+    else:
+        print(lang.content["unsupported_obj"])
+
+    print("\n##########\n")

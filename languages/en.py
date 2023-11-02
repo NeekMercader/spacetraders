@@ -86,6 +86,9 @@ content = {
 	"initializing": "\nInitializing...\n",
 	"exit_msg": "\n\n\n[The End]\n\nExiting...\nElvis has left the building.\n\n\n",
 
+	# Errors
+	"unsupported_obj": "Unsupported object type.",
+
 }
 
 commands = {

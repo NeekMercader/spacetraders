@@ -15,7 +15,7 @@ import utilities.utilities as util
 
 # logging
 import logging
-logging.basicConfig(filename='trade_history.log', level=logging.INFO)
+logging.basicConfig(filename='logs/trade_history.log', level=logging.INFO)
 
 
 '''
@@ -121,6 +121,14 @@ class Ship:
         shipdata.append(owner)
         shipdata.append(fleet)
         return shipdata
+    
+    @staticmethod
+    def display_weapons(player, sample_ship):
+        ship_weapons_list = sample_ship.weapons
+        storage_weapons_list = player.storage
+
+        util.debug_checkpoint("SHIP: Display Weapons List to Attach/Detach", ship_weapons_list)
+        util.print_obj_sans_extra("STORAGE: Display Weapons List to Attach/Detach", storage_weapons_list)
 
     # def __init__(self, name, ship_type, ship_class, cargo=500, weapon=100, passenger=1, owner=1, fleet=1):
     def __init__(self, *argslist):
@@ -639,10 +647,10 @@ class TradingMarketplace:
         if item_id in item_dict:
             base_price = item_dict[item_id]['base_price']
             current_qty = item_dict[item_id]['qty']
-            if current_qty < 10:
-                adjusted_price = base_price * 1.5  # Increase price by 50% if qty is less than 10
-            elif current_qty < 50:
-                adjusted_price = base_price * 1.2  # Increase price by 20% if qty is less than 50
+            if current_qty < data.DYNAMIC_PRICING_QTY_TIER_01:      # 10
+                adjusted_price = base_price * data.DYNAMIC_PRICING_QTY_TIER_01_MULTIPLIER  # Increase price by 100% (2x)
+            elif current_qty < data.DYNAMIC_PRICING_QTY_TIER_02:    # 50
+                adjusted_price = base_price * data.DYNAMIC_PRICING_QTY_TIER_01_MULTIPLIER  # Increase price by 50% (1.5x)
             else:
                 adjusted_price = base_price
         return adjusted_price
@@ -676,11 +684,9 @@ class TravelSystem:
     def expand_selection(input_char):
         return data.planets[int(input_char) - 1]    # convert input char to planet name string (based on index #)
 
-    def __init__(self, ship):        # player = Player object; provides Ship and location info
-        self.ship = ship
-
-    def ship_travel(self):
-        selection = TravelSystem.expand_selection(Game.ui_screens("travel"))    # departure
+    # @staticmethod
+    def ship_travel(self, input_char):
+        selection = TravelSystem.expand_selection(input_char)    # departure
         print(f"Traveling to {selection}...\n")
 
         # time.sleep(1)
@@ -691,8 +697,9 @@ class TravelSystem:
             print(f"Arriving in {selection}...\n")
             self.set_curr_location(selection)        # set ship location; later, fleet can have different locations
             self.player.curr_location = selection    # player location; fleet ships can be scattered in diff locations
-            # selection = TravelSystem.expand_selection(Game.ui_screens("main"))        # arrival
 
+    def __init__(self, ship):        # player = Player object; provides Ship and location info
+        self.ship = ship
 
 
 class EventSystem:
@@ -837,12 +844,22 @@ class Game:
         if screen == "start":
             print(views.content["branding_title"])
             player_name = input(lang.content["temp_enter_name"])
+            print("Hi there, " + player_name + "!\n")    # display
+            return player_name 
+
+            # player_menu_select = input(views.content["select_main"]).lower()
+            # print(util.msg("temp_print_selection").format(player_name=player_name, player_menu_select=player_menu_select))
+
+        elif screen == "select_main":
             player_menu_select = input(views.content["select_main"]).lower()
-            print(util.msg("temp_print_selection").format(player_name=player_name, player_menu_select=player_menu_select))
-        elif screen == "main":
-            player_menu_select = input(views.content["select_main"]).lower()
-        elif screen == "travel":
-            player_menu_select = input(views.content["select_travel"]).lower()
+        elif screen == "submenu_s":
+            player_menu_select = input(views.content["submenu_s"]).lower()
+        elif screen == "submenu_s_w":
+            player_menu_select = input(views.content["submenu_s_w"]).lower()
+        elif screen == "submenu_s_t":
+            player_menu_select = input(views.content["submenu_s_t"]).lower()
+
+
         return player_menu_select
     
     @staticmethod
@@ -881,10 +898,25 @@ class Game:
     @staticmethod
     def play_game():
 
-        player_menu_select = Game.ui_screens()   # start the game
+        # valid commands (structure: dict of dicts)
+        command_list = {
+            's': { 'w': 'ship_weapons', 't': 'select_travel' },
+            'w': { 'w', 's' },
+            'm': { 'b', 's', 'i' },
+            'b': { 'd', 'w', 'b', 'p' },
+            'y': { 'b', 'p' },
+            'r': {},
+            'p': { 'i', 'c' },
+            'i': {},
+            'x': {},
+            # ...
+            # See "select_main" dict element in /views for the main menu interface
+        }
 
-        while (player_menu_select != 'x') and (player_menu_select != lang.commands["exit"]): # to exit, user can press 'x' or type 'exit'
-            
+        # outer loop: start the game
+        # while (player_menu_select != 'x') and (player_menu_select != lang.commands["exit"]): # to exit, user can press 'x' or type 'exit'
+        while True:
+
             ### Initialize
 
             # initialize player and ship
@@ -896,21 +928,72 @@ class Game:
             Game.initialize_game(player_01, sample_ship)
             
 
+            # startup screen
+            player_01.username = Game.ui_screens("start")
 
-            # test
-            time_passage = ArrivalRoutines()
-            # sample_ship.health = 5000    # test
-            sample_ship.cargo["contraband"] = 10
-            # time_passage.police_raid(player_01, sample_ship)
-            time_passage.standard_routines(player_01, sample_ship)
+            ### main loop: perform main menu commands selected
+            while True:
 
-            TravelSystem.ship_travel(sample_ship)
+                if sample_ship.health <= 0:
+                    break
 
-            if (sample_ship.health > 0):    # otherwise, just exit to endscreen
-                player_01.loan = data.PLAYER_STARTING_BALANCE    # testing; balance is from debt
-                # player_01.balance = 1000    # testing
-                testbank = Bank(player_01)    # self, player, location="Solstra"
-                testbank.pay_loan(player_01)
+                player_menu_select = Game.ui_screens("select_main")  # first, show main menu loop
+                player_submenu_select = ''
+                player_subsubmenu_select = ''
+                
+
+                if player_menu_select == 's':           # ship
+                    player_submenu_select = Game.ui_screens("submenu_s")   # display Ship submenu
+                    if player_submenu_select == 'w':    # weapons
+                        # weapons routines
+                        Ship.display_weapons(player_01, sample_ship)    # display player's weapons in current ship and storage/warehouse
+                        player_subsubmenu_select =  Game.ui_screens("submenu_s_w")  # display weapons attach/detach listing and submenu
+
+
+                        # examples:
+                        # sample_ship.attach_weapon( {"Pulse Cannon": 2, "Railgun": 1} )
+                        # sample_ship.attach_weapon( {"Plasma Blaster": 2, "Railgun": 1} )
+                        # sample_ship.remove_weapon( {"Pulse Cannon": 1, "Plasma Blaster": 1})
+
+                    elif player_submenu_select == 't':  # travel
+                        player_subsubmenu_select = -1
+                        # check if input_char is valid; otherwise, redisplay menu
+                        valid_range = range(1, len(data.planets)+1)
+                        while (player_subsubmenu_select not in valid_range):
+                            player_subsubmenu_select =  Game.ui_screens("submenu_s_t")
+                            if player_subsubmenu_select.isdigit():
+                                player_subsubmenu_select = int(player_subsubmenu_select)
+
+                            util.debug_checkpoint("player_subsubmenu_select", var=player_subsubmenu_select)
+                            util.debug_checkpoint("valid_range", valid_range)
+                            util.print_obj_sans_extra("valid_range", valid_range)
+
+                        TravelSystem.ship_travel(sample_ship, player_subsubmenu_select)
+
+                        # test (assuming travel was selected)
+                        sample_ship.cargo["contraband"] = 10    # test only
+                        time_passage = ArrivalRoutines()    # days passing counter, interests, ship health, etc.
+                        time_passage.standard_routines(player_01, sample_ship)
+                        # sample_ship.health = 5000    # test
+
+                        # test routines!
+                        if (sample_ship.health > 0):    # otherwise, just exit to endscreen
+                            player_01.loan = data.PLAYER_STARTING_BALANCE    # testing; balance is from debt
+                            # player_01.balance = 1000    # testing
+                            testbank = Bank(player_01)    # self, player, location="Solstra"
+                            testbank.pay_loan(player_01)
+
+                    # elif player_submenu_select == '':
+
+
+                elif player_menu_select == 'x' or player_menu_select == lang.commands["exit"]:
+                # Exit the main menu loop
+                    break
+                else:
+                    print(views.content["invalid_choice"])
+
+
+
 
             '''
             # trading marketplace
@@ -938,9 +1021,9 @@ class Game:
 
             '''
 
-            ### Start 
-
             player_menu_select = Game.endscreen()
+            if (player_menu_select == 'x') or (player_menu_select == lang.commands["exit"]):    # to exit, user can press 'x' or type 'exit'
+                break
 
 
 

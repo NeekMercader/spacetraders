@@ -43,7 +43,30 @@ By Neek Mercader
 
 Command: """,
 
-    "select_travel" : """
+    "submenu_s" : """
+
++---------------------------------+--------------------------------+
+| Enter your destination:                                          |
++---------------------------------+--------------------------------+
+   'W' - Weapons: Attach / Detach
+   'T' - Travel   
++---------------------------------+--------------------------------+
+
+Command: """,
+
+
+    "submenu_s_w" : """
+
++---------------------------------+--------------------------------+
+| Enter your destination:                                          |
++---------------------------------+--------------------------------+
+   'A' - Attach Weapons from Storage to Ship
+   'D' - Detach Weapons from Ship to Storage   
++---------------------------------+--------------------------------+
+
+Command: """,
+
+    "submenu_s_t" : """
 
 +---------------------------------+--------------------------------+
 | Enter your destination:         |                                |
@@ -59,18 +82,6 @@ Command: """,
 
 Command: """,
 
-    "main_menu" : """
-
-[Menu]
-
-
-Command: """,
-
-
-
-
-### menus
-
 
     "input_endscreen" : """
 
@@ -79,6 +90,25 @@ Command: """,
     'X' - Exit
     ===============
     Make a selection: """,
+
+
+
+    "invalid_choice" : """
+
++---------------------------------+--------------------------------+
+| Invalid choice. Please enter a letter for your command.          |
++---------------------------------+--------------------------------+
+
+""",
+
+
+    "main_menu" : """
+
+[Menu]
+
+
+Command: """,
+
 
 
 }
