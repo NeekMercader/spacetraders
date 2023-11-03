@@ -840,18 +840,35 @@ class Game:
         pass
 
     @staticmethod
-    def ui_screens(screen="start"):
+    def ui_screens(screen="start", gameinfo = {}):  #  gameinfo only used in "select_main"
+        
         if screen == "start":
             print(views.content["branding_title"])
             player_name = input(lang.content["temp_enter_name"])
             print("Hi there, " + player_name + "!\n")    # display
             return player_name 
 
-            # player_menu_select = input(views.content["select_main"]).lower()
-            # print(util.msg("temp_print_selection").format(player_name=player_name, player_menu_select=player_menu_select))
-
         elif screen == "select_main":
-            player_menu_select = input(views.content["select_main"]).lower()
+            select_main = f"""\n
++-----------------------------------------+-----------------------------------------------+
+  Type your command:                      | Info:
++-----------------------------------------+-----------------------------------------------+
+  'S' - Enter Ship                        | Location: {gameinfo['location']}
+  'W' - Storage (Transfer Cargo)          | Ship: {gameinfo['shipname']}
+  'M' - Marketplace (Trade)               |                                                
+  'B' - Bank (Visit, Deposit, Withdraw)   +-----------------------------------------------+
+  'Y' - Syndicate (Underground)           | Stats:
+  'R' - Maintenance & Repair              +-----------------------------------------------+
+  'I' - Gather Intel (Visit a Bar / Club) | Credits (On Hand): {gameinfo['credits_on_hand']}
+                                          | Bank: {gameinfo['bank_balance']}
++-----------------------------------------+ Ship Health:  {gameinfo['ship_health']}  (Shields:  {gameinfo['ship_shields']})
+  'P' - Player Settings / Dashboard       | Weapons: {gameinfo['weapons_slots_used']} slots used of {gameinfo['weapons_max_capacity']} capacity
+  'X' - Exit                              | Cargo Capacity: {gameinfo['cargo_used']} of {gameinfo['cargo_capacity']} ({gameinfo['cargo_available']} available)
++-----------------------------------------+-----------------------------------------------+
+\nCommand: """
+            player_menu_select = input(select_main).lower()
+            # player_menu_select = input(views.content["select_main"]).lower()
+
         elif screen == "submenu_s":
             player_menu_select = input(views.content["submenu_s"]).lower()
         elif screen == "submenu_s_w":
@@ -898,28 +915,13 @@ class Game:
     @staticmethod
     def play_game():
 
-        # valid commands (structure: dict of dicts)
-        command_list = {
-            's': { 'w': 'ship_weapons', 't': 'select_travel' },
-            'w': { 'w', 's' },
-            'm': { 'b', 's', 'i' },
-            'b': { 'd', 'w', 'b', 'p' },
-            'y': { 'b', 'p' },
-            'r': {},
-            'p': { 'i', 'c' },
-            'i': {},
-            'x': {},
-            # ...
-            # See "select_main" dict element in /views for the main menu interface
-        }
-
         # outer loop: start the game
         # while (player_menu_select != 'x') and (player_menu_select != lang.commands["exit"]): # to exit, user can press 'x' or type 'exit'
         while True:
 
             ### Initialize
 
-            # initialize player and ship
+            # initialize player and ship (moved to constructor)
             player_01 = Player()    # player_id=1, player_username="SirLootALot", initial_balance=0)
             player_01.add_to_playerlist()
             sample_ship = Ship(*Ship.init_ship("Prometheus", "light freighter"))
@@ -937,7 +939,20 @@ class Game:
                 if sample_ship.health <= 0:
                     break
 
-                player_menu_select = Game.ui_screens("select_main")  # first, show main menu loop
+                gameinfo = {
+                    "location": f"{player_01.curr_location}",
+                    "shipname": f"{sample_ship.name}",
+                    "credits_on_hand": f"{player_01.balance:,}",
+                    "bank_balance": f"{player_01.bank_balance}",   # later, add 'M' or 'B' for over 1 million, billion, etc.
+                    "ship_health": f"{sample_ship.health}",
+                    "ship_shields": f"{sample_ship.shields}",
+                    "weapons_slots_used": f"{sample_ship.utilized_weapon_capacity}",
+                    "weapons_max_capacity": f"{sample_ship.weapon_capacity}",
+                    "cargo_used": f"{sample_ship.utilized_cargo_capacity}",
+                    "cargo_capacity": f"{sample_ship.cargo_capacity}",
+                    "cargo_available": f"{sample_ship.cargo_capacity - sample_ship.utilized_cargo_capacity}",
+                }
+                player_menu_select = Game.ui_screens("select_main", gameinfo)  # first, show main menu loop
                 player_submenu_select = ''
                 player_subsubmenu_select = ''
                 
@@ -963,10 +978,6 @@ class Game:
                             player_subsubmenu_select =  Game.ui_screens("submenu_s_t")
                             if player_subsubmenu_select.isdigit():
                                 player_subsubmenu_select = int(player_subsubmenu_select)
-
-                            util.debug_checkpoint("player_subsubmenu_select", var=player_subsubmenu_select)
-                            util.debug_checkpoint("valid_range", valid_range)
-                            util.print_obj_sans_extra("valid_range", valid_range)
 
                         TravelSystem.ship_travel(sample_ship, player_subsubmenu_select)
 

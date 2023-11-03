@@ -13,7 +13,7 @@ By Neek Mercader
 
 """ 		# https://tableconvert.com/ascii-generator
 ,
-    "select_main" : """
+    "select_main_legacy" : """
 
 +---------------------------------------------------------------------------------------+
 | Type your command:                                                                    |
@@ -42,6 +42,27 @@ By Neek Mercader
 +---------------------------------------------+-----------------------------------------+
 
 Command: """,
+
+    "select_main" : """
+
++-----------------------------------------+-----------------------------------------------+
+  Type your command:                      | Info:
++-----------------------------------------+-----------------------------------------------+
+  'S' - Enter Ship                        | Location: {gameinfo['location']}
+  'W' - Storage (Transfer Cargo)          | Ship: {gameinfo['shipname']}
+  'M' - Marketplace (Trade)               |                                                
+  'B' - Bank (Visit, Deposit, Withdraw)   +-----------------------------------------------+
+  'Y' - Syndicate (Underground)           | Stats:
+  'R' - Maintenance & Repair              +-----------------------------------------------+
+  'I' - Gather Intel (Visit a Bar / Club) | Credits (On Hand): {gameinfo['credits_on_hand']}
+                                          | Bank: {gameinfo['bank_balance']}
++-----------------------------------------+ Ship Health:  {gameinfo['ship_health']}  (Shields:  {gameinfo['ship_shields']})
+  'P' - Player Settings / Dashboard       | Weapons: {gameinfo['weapons_slots_used']} slots used of {gameinfo['weapons_max_capacity']} capacity
+  'X' - Exit                              | Cargo Capacity: {gameinfo['cargo_used']} of {gameinfo['cargo_capacity']} ({gameinfo['cargo_available']} available)
++-----------------------------------------+-----------------------------------------------+
+
+Command: """,
+
 
     "submenu_s" : """
 
