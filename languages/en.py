@@ -27,7 +27,9 @@ content = {
 	"weapon_loaded": "Weapon has been loaded to ship: {four}\n(Qty: {five}, Capacity: {six})\nTotal capacity used: {two} of {one} (Remaining: {three})",
 	"weapon_not_loaded": "Weapon was not loaded. Item mismatch or quantity of weapons exceed storage capacity.",
 	"weapon_removed": "Weapon has been removed from ship: {four}\n(Qty: {five}, Capacity: {six})\nTodal capacity used: {two} of {one} (Remaining: {three})",
-	"weapon_not_removed" : "Weapon not removed! Attempting to remove a weapon that is nonexistent or capacity entered to remove is more than weapon quantity.",
+	"weapon_not_removed": "Weapon not removed! Attempting to remove a weapon that is nonexistent or capacity entered to remove is more than weapon quantity.",
+    "weapon_select": "Please select a weapon (from storage) to attach: ",
+    "weapon_qty": "Enter the quantity to move: ",
     	
 
 	# __repr__
@@ -41,6 +43,7 @@ content = {
 	# travel: planets
 	"label_header_map": "MAP OF GALACTIC SECTOR",
     "label_line_header_map": "----------------------",
+	"same_location_selected": "You're trying to travel to the same place. Please try again.",
     
 	# LoanSystem
     "loan_paid": "You have paid off your loan.\n",
@@ -88,6 +91,26 @@ content = {
 
 	# Errors
 	"unsupported_obj": "Unsupported object type.",
+	"invalid_choice" : """\n
++---------------------------------+--------------------------------+
+| Invalid choice. Please try again.                                |
++---------------------------------+--------------------------------+\n
+""",
+"invalid_choice_char" : """\n
++---------------------------------+--------------------------------+
+| Invalid choice. Please enter a letter for your command.          |
++---------------------------------+--------------------------------+\n
+""",
+	"invalid_choice_num" : """\n
++---------------------------------+--------------------------------+
+| Invalid choice. Please enter a number for your command.          |
++---------------------------------+--------------------------------+\n
+""",
+"invalid_choice_same_loc" : """\n
++---------------------------------+----------------------------------+
+| Invalid choice: You are alredy in this location. Please try again. |
++---------------------------------+----------------------------------+\n
+""",
 
 }
 

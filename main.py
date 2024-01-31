@@ -86,8 +86,8 @@ class Player:
 
         self.curr_location = "Solstra"
         self.reputation = 0
-        self.storage = {}    # dict of Storage instances based on location; e.g. { "Solstra": Storage("Solstra", 50000), }
-
+        # self.storage = {}    # dict of Storage instances based on location; e.g. { "Solstra": Storage("Solstra", 50000), }
+        self.storage = {self.curr_location: Storage(self.curr_location, 50000)}  # Initialize Storage for initial location
         self.trade_history = []
 
     # Check if player has sufficient balance for a given amount
@@ -123,12 +123,26 @@ class Ship:
         return shipdata
     
     @staticmethod
-    def display_weapons(player, sample_ship):
+    def display_weapons(player, sample_ship, source="all"):
         ship_weapons_list = sample_ship.weapons
-        storage_weapons_list = player.storage
+        #storage_weapons_list = player.storage   # layers: 1 (dict): main dict; 2 (obj): location; 3 (dict): items
+        storage_weapons_list = {}
+        if player.curr_location in player.storage:
+            storage_instance = player.storage[player.curr_location]
+            if hasattr(storage_instance, 'items'):
+                storage_weapons_list = storage_instance.items
 
-        util.debug_checkpoint("SHIP: Display Weapons List to Attach/Detach", ship_weapons_list)
-        util.print_obj_sans_extra("STORAGE: Display Weapons List to Attach/Detach", storage_weapons_list)
+        if source == "all":
+            ship_weapons_display = util.format_list(ship_weapons_list, "Ship Weapons (Qty)", "dict")
+            storage_weapons_display = util.format_list(storage_weapons_list, "Weapons in Storage (Qty)", "dict")
+            return ship_weapons_display + "\n" + storage_weapons_display + "\n"
+        elif source == "ship_weapons":
+            return util.format_list(ship_weapons_list, "Ship Weapons (Qty)", "dict")
+        elif source == "storage_weapons":
+            return util.format_list(storage_weapons_list, "Weapons in Storage (Qty)", "dict")
+        else:
+            return None
+
 
     # def __init__(self, name, ship_type, ship_class, cargo=500, weapon=100, passenger=1, owner=1, fleet=1):
     def __init__(self, *argslist):
@@ -163,6 +177,8 @@ class Ship:
         return util.msg("repr_ship").format(name=self.name, ship_type=self.ship_type, ship_class = self.ship_class, passenger_capacity = self.passenger_capacity, cargo_capacity = self.utilized_cargo_capacity, weapons_capacity = self.utilized_weapon_capacity, cargo = self.cargo, weapons = self.weapons)
 
     def set_curr_location(self, location):
+        if location not in self.player.storage:
+            self.player.storage[location] = Storage(location, 50000)  # Initialize Storage for new location
         self.player.curr_location = location
         self.curr_location = location
 
@@ -206,7 +222,6 @@ class Ship:
             if (suppress_msg == False): print(util.msg("weapon_loaded").format(one=self.weapon_capacity,two=self.utilized_weapon_capacity,three=self.weapon_capacity-self.utilized_weapon_capacity,four=shipweapon,five=sum(shipweapon.values()),six=weapon_capacity))
         else:
             for item in shipweapon.keys():    # fit weapons individually
-                # print("\n\n\n$$$$$$$$$$\nATTACH_WEAPON'S ITEM =", str(item), "\nSHIPWEAPON = ", str(shipweapon), "\nSHIPWEAPON(KEYS) = ", shipweapon.keys(), "\n\n\n")    # TEST
                 item_dict = {}
                 item_dict[item] = 1
                 weapon_capacity_single = self.compute_capacity(item_dict, "weapons")
@@ -217,37 +232,6 @@ class Ship:
                     return False
         if (suppress_msg == False): print(self.show_weapon_stats(self.weapons))
         return True
-    
-    '''
-    # enemy_ship.attach_weapon({item: random.randint(1,data.RANDOM_SHIP_WEAPONS_MAX_PER)})
-    def attach_weapon(self, shipweapon):    # shipweapon = dict (e.g. { "Pulse Cannon" : 2, "Railgun" : 1 })
-        weapon_capacity = self.compute_capacity(shipweapon, "weapons")
-        if self.weapon_capacity >= self.utilized_weapon_capacity + weapon_capacity:
-            self.utilized_weapon_capacity += weapon_capacity
-            for item in shipweapon.keys():
-                self.weapons[item] = self.weapons.get(item, 0) + shipweapon[item]    # qty, not capacity
-            print(util.msg("weapon_loaded").format(one=self.weapon_capacity,two=self.utilized_weapon_capacity,three=self.weapon_capacity-self.utilized_weapon_capacity,four=shipweapon,five=sum(shipweapon.values()),six=weapon_capacity))
-        else:
-            for item in shipweapon.keys():    # .keys()    # fit weapons individually
-                util.debug_checkpoint("INSIDE ATTACH_WEAPON'S ELSE: CLAUSE. Shipweapon = ", shipweapon)
-                weapon_capacity_single = self.compute_capacity(shipweapon, "weapons")
-            
-                if self.utilized_weapon_capacity + weapon_capacity_single >= 0:
-                    util.debug_checkpoint("INSIDE ATTACH_WEAPON'S ELSE then IF: CLAUSE. Item = " + item + " item = ", item)
-                    self.weapons[item] = self.weapons.get(item, 0) + shipweapon[item]
-                else:
-                    print(util.msg("weapon_not_loaded"))
-                    return False
-        print(self.show_weapon_stats(self.weapons))
-        return True    
-        """    
-        else:
-            print(util.msg("weapon_not_loaded"))
-            return False
-        print(self.show_weapon_stats(self.weapons))
-        return True
-        """
-    '''
 
     def remove_weapon(self, shipweapon):    # { "Pulse Cannon" : 2, "Railgun" : 1 })
         for item in shipweapon.keys():
@@ -499,7 +483,8 @@ class ArrivalRoutines:    # note: call standard_routines()
 
 
 
-
+# storage / warehouse (assume aggregated) for a given location
+# layers: 1 (dict): main dict; 2 (obj): location; 3 (dict): items
 class Storage:
     def __init__(self, location, capacity, player_id=1):
         self.location = location
@@ -508,7 +493,7 @@ class Storage:
 
         self.utilized_capacity = 0
         
-        self.items = {}  # Dictionary to hold item names and quantities
+        self.items = {}  # Dictionary to hold item names and quantities 
 
     # Check the remaining storage capacity.
     def get_remaining_capacity(self):
@@ -556,7 +541,9 @@ class Storage:
                 self.remove_item(item, qty)
                 print(f"\n-----\nItems ({item}: {qty}) moved from storage to ship.\nShip inventory:\n\t{ship.cargo} (cargo)\n\t{ship.weapons} (weapons)\nStorage inventory: {self.items}\n-----\n")
         else:
-            print(f"Insufficient qty to transfer {qty} units of {item}.")
+            print(f"\n[Aborted] Insufficient qty to transfer {qty} units of {item}.")
+            return False
+        return True
 
     # Transfer a qty of an item from a ship to storage. (items can be of itemtype "cargo" or other (e.g. "weapons"))
     def receive_from_ship(self, ship, item, qty):    # , itemtype="cargo"
@@ -682,8 +669,8 @@ class TravelSystem:
 
     @staticmethod
     def expand_selection(input_char):
-        return data.planets[int(input_char) - 1]    # convert input char to planet name string (based on index #)
-
+        return data.planets[int(input_char) - 1] if ( (str(input_char).isdigit()) and (0 <= int(input_char) <= len(data.planets)) ) else None
+            
     # @staticmethod
     def ship_travel(self, input_char):
         selection = TravelSystem.expand_selection(input_char)    # departure
@@ -708,10 +695,6 @@ class EventSystem:
         
         event = data.eventlist[random.randint(1, len(data.eventlist) - 1)]  # could also be: event = random.choice(data.eventlist)
         
-        print("\n\n\n\n\n#################################")
-        print(f"\nInside EventSystem, current event is {event}.\n")
-        print("#################################\n\n\n\n\n")
-
         # enemy_ships = CombatSystem.get_enemy_ships()
         enemy_ships = CombatSystem.initialize_enemies()
         combat_01 = CombatSystem(ship, enemy_ships)    # sample_ship
@@ -853,14 +836,14 @@ class Game:
 +-----------------------------------------+-----------------------------------------------+
   Type your command:                      | Info:
 +-----------------------------------------+-----------------------------------------------+
-  'S' - Enter Ship                        | Location: {gameinfo['location']}
+  'S' - Enter Ship (Travel)               | Location: {gameinfo['location']}
   'W' - Storage (Transfer Cargo)          | Ship: {gameinfo['shipname']}
-  'M' - Marketplace (Trade)               |                                                
-  'B' - Bank (Visit, Deposit, Withdraw)   +-----------------------------------------------+
-  'Y' - Syndicate (Underground)           | Stats:
-  'R' - Maintenance & Repair              +-----------------------------------------------+
-  'I' - Gather Intel (Visit a Bar / Club) | Credits (On Hand): {gameinfo['credits_on_hand']}
-                                          | Bank: {gameinfo['bank_balance']}
+  'M' - Marketplace (Trade)               +-----------------------------------------------+
+  'B' - Bank (Visit, Deposit, Withdraw)   | Stats:
+  'Y' - Syndicate (Underground)           +-----------------------------------------------+
+  'R' - Maintenance & Repair              | Credits (On Hand): {gameinfo['credits_on_hand']}
+  'I' - Gather Intel (Visit a Bar / Club) | Bank Balance (Credits): {gameinfo['bank_balance']}
+                                          | Loans: Bank - {gameinfo['bank_loan']} | Syndicate - {gameinfo['syndicate_loan']}
 +-----------------------------------------+ Ship Health:  {gameinfo['ship_health']}  (Shields:  {gameinfo['ship_shields']})
   'P' - Player Settings / Dashboard       | Weapons: {gameinfo['weapons_slots_used']} slots used of {gameinfo['weapons_max_capacity']} capacity
   'X' - Exit                              | Cargo Capacity: {gameinfo['cargo_used']} of {gameinfo['cargo_capacity']} ({gameinfo['cargo_available']} available)
@@ -876,6 +859,13 @@ class Game:
         elif screen == "submenu_s_t":
             player_menu_select = input(views.content["submenu_s_t"]).lower()
 
+        # delete these
+        """
+        elif screen == "submenu_s_w_a":
+            player_menu_select = input(views.content["submenu_s_w_a"]).lower()  # attach
+        elif screen == "submenu_s_w_d":
+            player_menu_select = input(views.content["submenu_s_w_d"]).lower()  # detach
+        """
 
         return player_menu_select
     
@@ -888,7 +878,7 @@ class Game:
 
     @staticmethod
     def initialize_game(player_01, sample_ship):
-            player_01.storage.update( {"Solstra": Storage("Solstra", data.PLAYER_STARTING_STORAGE)} )    # test only; can be instantiated by other means
+            player_01.storage.update( {"Solstra": Storage("Solstra", data.PLAYER_STARTING_STORAGE)} )    # layers: 1 (dict): main dict; 2 (obj): location; 3 (dict): items # test only; can be instantiated by other means
             player_01.balance = data.PLAYER_STARTING_BALANCE
             player_01.storage["Solstra"].add_item("Pulse Cannon",5)    # later "Solstra" changed to curr_loc
             player_01.storage["Solstra"].add_item("Railgun",7)
@@ -944,6 +934,8 @@ class Game:
                     "shipname": f"{sample_ship.name}",
                     "credits_on_hand": f"{player_01.balance:,}",
                     "bank_balance": f"{player_01.bank_balance}",   # later, add 'M' or 'B' for over 1 million, billion, etc.
+                    "bank_loan": f"{player_01.loan}",
+                    "syndicate_loan": f"{player_01.syndicate_loan}",
                     "ship_health": f"{sample_ship.health}",
                     "ship_shields": f"{sample_ship.shields}",
                     "weapons_slots_used": f"{sample_ship.utilized_weapon_capacity}",
@@ -961,8 +953,42 @@ class Game:
                     player_submenu_select = Game.ui_screens("submenu_s")   # display Ship submenu
                     if player_submenu_select == 'w':    # weapons
                         # weapons routines
-                        Ship.display_weapons(player_01, sample_ship)    # display player's weapons in current ship and storage/warehouse
+                        print(Ship.display_weapons(player_01, sample_ship))    # display player's weapons in current ship and storage/warehouse
                         player_subsubmenu_select =  Game.ui_screens("submenu_s_w")  # display weapons attach/detach listing and submenu
+
+                        storage_instance = player_01.storage[player_01.curr_location]
+
+                        if player_subsubmenu_select == 'a':     # attach from storage to ship
+
+                            # wlist = util.format_list(sample_ship.weapons, "", type="weapons_list")
+                            wlist = util.format_list(storage_instance.items, "", type="weapons_list")
+
+                            print(Ship.display_weapons(player_01, sample_ship, "storage_weapons"))
+                            print(Ship.display_weapons(player_01, sample_ship, "ship_weapons"))
+                            
+                            weapon_selected = int(input(lang.content["weapon_select"]))
+                            # check if weapon number selected is out of range of weapon types available
+                            while (weapon_selected <= 0) or (weapon_selected > len(wlist)):
+                                print("\nNumber selected is out of range. Please try again.\n")
+                                weapon_selected = int(input(lang.content["weapon_select"]))
+
+                            weapon_qty = int(input(lang.content["weapon_qty"]))
+                            weapon_name = wlist[weapon_selected - 1]
+                            # weapon_name = Ship.get_weapon_key(weapon_selected)
+                            
+                            # sample_ship.attach_weapon( {weapon_name: weapon_qty} )
+                            storage_instance.transfer_to_ship(sample_ship, weapon_name, weapon_qty)
+                            
+                            # print("\n\nWeapons:\n" + sample_ship.weapons[2] + "\nQty: " + weapon_qty + "\n\n")
+                            print("\nWeapons moved.\n")
+                            print(Ship.display_weapons(player_01, sample_ship, "storage_weapons"))
+                            print(Ship.display_weapons(player_01, sample_ship, "ship_weapons"))
+
+                        elif player_subsubmenu_select == 'd':   # detach from ship to storage
+                            # same as above, with minor mods
+                            pass
+
+
 
 
                         # examples:
@@ -971,13 +997,36 @@ class Game:
                         # sample_ship.remove_weapon( {"Pulse Cannon": 1, "Plasma Blaster": 1})
 
                     elif player_submenu_select == 't':  # travel
-                        player_subsubmenu_select = -1
-                        # check if input_char is valid; otherwise, redisplay menu
+                        player_subsubmenu_select = -1   
                         valid_range = range(1, len(data.planets)+1)
-                        while (player_subsubmenu_select not in valid_range):
+                        same_location = True
+                        # check if input_char is valid; otherwise, redisplay menu
+                        while ((player_subsubmenu_select not in valid_range) or (same_location == True)):
                             player_subsubmenu_select =  Game.ui_screens("submenu_s_t")
+
+                            player_subsubmenu_select = int(player_subsubmenu_select) if util.validate_input_char(player_subsubmenu_select, "digit") else -1
+                            # if util.validate_input_char(player_subsubmenu_select, "digit"): player_subsubmenu_select = int(player_subsubmenu_select); else: player_subsubmenu_select = -1
+                            same_location = (print(util.msg("invalid_choice_same_loc")) or True) if (player_01.curr_location == TravelSystem.expand_selection(player_subsubmenu_select)) else False
+                            # (same_location = True; print(util.msg("invalid_choice_same_loc"))) if (player_01.curr_location == TravelSystem.expand_selection(player_subsubmenu_select)) else False
+                            
+                            """
                             if player_subsubmenu_select.isdigit():
-                                player_subsubmenu_select = int(player_subsubmenu_select)
+                                
+                                util.debug_checkpoint("player_subsubmenu_select", player_subsubmenu_select)
+
+                                same_location = True if (player_01.curr_location == TravelSystem.expand_selection(player_subsubmenu_select)) else False
+                            elif player_subsubmenu_select.isalpha():
+                                print ("\nTEST 2!\n\n\n")
+                                # util.msg("invalid_chosice_num")
+                            else:
+                                util.msg("invalid_choice_num")
+
+                            # util.debug_checkpoint("player_subsubmenu_select", var=player_subsubmenu_select)
+                            # util.debug_checkpoint("valid_range", valid_range)
+                            util.print_obj_sans_extra("valid_range", valid_range)   # test
+                            util.debug_checkpoint("player_01.curr_location.", player_01.curr_location )
+                            util.debug_checkpoint("TravelSystem.expand_selection(player_subsubmenu_select)", TravelSystem.expand_selection(player_subsubmenu_select))
+                            """
 
                         TravelSystem.ship_travel(sample_ship, player_subsubmenu_select)
 
@@ -1001,7 +1050,7 @@ class Game:
                 # Exit the main menu loop
                     break
                 else:
-                    print(views.content["invalid_choice"])
+                    print(util.msg(views.content["invalid_choice_char"]))
 
 
 

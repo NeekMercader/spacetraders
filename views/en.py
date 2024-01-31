@@ -67,7 +67,7 @@ Command: """,
     "submenu_s" : """
 
 +---------------------------------+--------------------------------+
-| Enter your destination:                                          |
+| Your Order:                                                      |
 +---------------------------------+--------------------------------+
    'W' - Weapons: Attach / Detach
    'T' - Travel   
@@ -92,7 +92,7 @@ Command: """,
 +---------------------------------+--------------------------------+
 | Enter your destination:         |                                |
 +---------------------------------+--------------------------------+
-  '1' = Solstra (DEBUG: Enter based off dynamic destination list)
+  '1' = Solstra
   '2' = Pulsarion
   '3' = Caelus Prime
   '4' = Draconis

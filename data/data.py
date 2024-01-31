@@ -21,7 +21,7 @@ STD_LOANABLE_AMT = 0.5          # Loan at 50% of net worth
 STD_LOAN_INTEREST_RATE = 0.15   # loan interest
 SYNDICATE_INTEREST_RATE = 1     # 100% interest per year (365 turns)
 SYNDICATE_LOANABLE_AMT = 5      # Loan at (up to) 500% of net worth
-LOAN_SEVERITY_LEVEL = (1,2,3,4,5)   # similar to DEFCON, Richter, and (storm) Category
+LOAN_SEVERITY_LEVEL = (1,2,3,4,5)   # similar to DEFCON, Richter scale, and (storm) Category
 
 # (name, ship_type, ship_class, cargo=500, weapon=100, passenger=1, owner=1, fleet=1)
 ship_data = {
